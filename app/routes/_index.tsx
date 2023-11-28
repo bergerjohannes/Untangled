@@ -1,41 +1,34 @@
-import type { MetaFunction } from "@remix-run/node";
+import type { MetaFunction } from '@remix-run/node'
+import { Link } from '@remix-run/react'
+import { useEffect, useState } from 'react'
+import { useOutletContext } from '@remix-run/react'
+
+import type { SupabaseOutletContext } from '~/root'
+import { Session, User } from '@supabase/gotrue-js/src/lib/types'
 
 export const meta: MetaFunction = () => {
-  return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
-  ];
-};
+  return [{ title: 'New Remix App' }, { name: 'description', content: 'Welcome to Remix!' }]
+}
 
 export default function Index() {
+  const { supabase } = useOutletContext<SupabaseOutletContext>()
+  const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session)
+      setUser(data.session?.user ?? null)
+    })
+  }, [])
+
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
-      <h1>Welcome to Remix</h1>
-      <ul>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/blog"
-            rel="noreferrer"
-          >
-            15m Quickstart Blog Tutorial
-          </a>
-        </li>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/jokes"
-            rel="noreferrer"
-          >
-            Deep Dive Jokes App Tutorial
-          </a>
-        </li>
-        <li>
-          <a target="_blank" href="https://remix.run/docs" rel="noreferrer">
-            Remix Docs
-          </a>
-        </li>
-      </ul>
+    <div className='pt-24 flex flex-col items-center font-bold text-3xl bg-blackish text-whitish'>
+      <span className='mt-24'>↓</span>
+      <div className='mt-24 flex items-center space-x-4'>
+        <Link to='/dashboard'>Dashboard</Link>
+        <Link to='/profile'>Profile</Link>
+      </div>
     </div>
-  );
+  )
 }
