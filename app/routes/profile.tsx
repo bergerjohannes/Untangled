@@ -3,6 +3,7 @@ import { Link, useLoaderData, useLocation, useNavigate } from '@remix-run/react'
 import supabaseClient from '~/utils/supabase.server'
 import { useOutletContext } from '@remix-run/react'
 import { useEffect, useState } from 'react'
+import NavigationBar from '~/components/navigationBar'
 
 import type { SupabaseOutletContext } from '~/root'
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
@@ -53,10 +54,13 @@ export default function Profile() {
   }
 
   return (
-    <div className='flex flex-col items-center'>
-      <h1 className='text-3xl font-bold'>Profile</h1>
-      {profile && <p>You are logged in as {profile.username}</p>}
-      <button onClick={() => logOut()}>Log out</button>
-    </div>
+    <>
+      <NavigationBar />
+      <div className='flex flex-col items-center'>
+        <h1 className='text-3xl font-bold'>Profile</h1>
+        {profile && <p>You are logged in as {profile.username}</p>}
+        <button onClick={() => logOut()}>Log out</button>
+      </div>
+    </>
   )
 }

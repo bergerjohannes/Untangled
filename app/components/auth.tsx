@@ -3,7 +3,7 @@ import { useOutletContext, useNavigate } from '@remix-run/react'
 import { useState } from 'react'
 
 import type { SupabaseOutletContext } from '~/root'
-import Logo from './logo'
+import { LogoWithText } from './logo'
 
 export enum AuthType {
   LogIn = 'logIn',
@@ -70,7 +70,7 @@ const Auth = ({ type, location }: AuthProps) => {
   return (
     <div className='flex flex-col md:flex-row m-auto w-full h-full absolute top-0 left-0'>
       <div className='md:w-1/2 bg-blackish text-whitish flex flex-col justify-center items-center'>
-        <Logo />
+        <LogoWithText />
       </div>
       <div className='md:w-1/2 bg-whitish text-blackish flex flex-col items-center justify-center'>
         <h2 className='text-3xl font-bold mb-4'>{title}</h2>

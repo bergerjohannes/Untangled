@@ -12,10 +12,14 @@ import {
 import { createBrowserClient, SupabaseClient } from '@supabase/auth-helpers-remix'
 import { useEffect, useState } from 'react'
 import stylesheet from '~/tailwind.css'
-import { Link } from 'react-router-dom'
+import animationStyles from '~/text-animation.css'
 
-export const links: LinksFunction = () => [{ rel: 'stylesheet', href: stylesheet }]
-
+export const links: LinksFunction = () => {
+  return [
+    { rel: 'stylesheet', href: stylesheet },
+    { rel: 'stylesheet', href: animationStyles },
+  ]
+}
 import createSupabaseClient from '~/utils/supabase.server'
 
 import type { Database } from 'supabase_types'
