@@ -1,10 +1,18 @@
 import { useLocation } from '@remix-run/react'
 import { useRef, useEffect, useState } from 'react'
-import { useOutletContext } from '@remix-run/react'
+import { ActionFunctionArgs, json } from '@remix-run/node'
+import { useOutletContext, useFetcher, useNavigate } from '@remix-run/react'
 import NavigationBar from '~/components/navigationBar'
+import Note from '~/components/note'
+import supabaseClient from '~/utils/supabase.server'
 
 import type { SupabaseOutletContext } from '~/root'
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
+
+enum Intent {
+  Save = 'Save',
+  Delete = 'Delete',
+}
 
 interface CustomLocationState extends Location {
   textData: string
@@ -12,11 +20,61 @@ interface CustomLocationState extends Location {
   timestampData: number
 }
 
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const response = new Response()
+  const supabase = supabaseClient({ request, response })
+
+  const formData = await request.formData()
+  const text = formData.get('text') as string
+  const title = formData.get('title') as string
+  const timestamp = formData.get('timestamp') as string
+  const intent = Intent[formData.get('intent') as keyof typeof Intent]
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  const userId = session?.user?.id ?? null
+  if (userId === null) {
+    console.error('Error: User ID is null')
+    return json({ error: 'User ID is null' }, { status: 500 })
+  }
+
+  if (intent === Intent.Save) {
+    const { data, error } = await supabase
+      .from('notes')
+      .insert([{ owner: userId, title, text, timestamp }])
+
+    if (error) {
+      console.error('Error adding note:', error)
+      return json({ error: error.message }, { status: 500 })
+    }
+
+    return json(data)
+  } else if (intent === Intent.Delete) {
+    const { data, error } = await supabase
+      .from('notes')
+      .delete()
+      .match({ owner: userId, title, text, timestamp })
+
+    if (error) {
+      console.error('Error deleting note:', error)
+      return json({ error: error.message }, { status: 500 })
+    }
+
+    return json(data)
+  } else {
+    return null
+  }
+}
+
 export default function Result() {
   const textRef = useRef<HTMLDivElement>(null)
   const [text, setText] = useState<string | null>(null)
   const [title, setTitle] = useState<string | null>(null)
   const [timestamp, setTimestamp] = useState<number | null>(null)
+  const [isSaved, setIsSaved] = useState<boolean>(false)
+  const navigate = useNavigate()
 
   const location = useLocation()
   const state = location.state as CustomLocationState
@@ -30,52 +88,27 @@ export default function Result() {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
 
+  const fetcher = useFetcher()
+
   useEffect(() => {
-    if (!text || !textRef.current) return
-
-    const wrapLettersWithSpan = (node: Node) => {
-      if (node instanceof HTMLElement) {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-          Array.from(node.childNodes).forEach((child) => {
-            if (child instanceof HTMLElement) {
-              wrapLettersWithSpan(child)
-            } else if (child.nodeType === Node.TEXT_NODE) {
-              wrapLettersWithSpan(child)
-            }
-          })
-        } else {
-          console.error(`Unexpected nodeType: ${node.nodeType}`)
-        }
-      } else if (node instanceof Text) {
-        const text = node.textContent || ''
-        const wrappedText = Array.from(text)
-          .map((letter) => `<span>${letter}</span>`)
-          .join('')
-
-        const spanContainer = document.createElement('span')
-        spanContainer.innerHTML = wrappedText
-        node.replaceWith(spanContainer)
-      } else {
-        console.error(`Unexpected nodeType: ${node.nodeType}`)
-      }
+    if (text && title && timestamp && !isSaved) {
+      fetcher.submit(
+        { text, title, timestamp, intent: Intent.Save },
+        { method: 'post', action: '/result' }
+      )
+      setIsSaved(true)
     }
+  }, [text, title, timestamp, fetcher, isSaved])
 
-    const addAnimationDelay = (node: HTMLDivElement) => {
-      node.querySelectorAll('span > span').forEach((span: any, index) => {
-        ;(span as HTMLElement).style.animationDelay = `${index * 0.001}s`
-      })
+  const handleDelete = async () => {
+    if (text && title && timestamp) {
+      await fetcher.submit(
+        { text, title, timestamp, intent: Intent.Delete },
+        { method: 'post', action: '/result' }
+      )
+      navigate('/')
     }
-
-    wrapLettersWithSpan(textRef.current)
-    addAnimationDelay(textRef.current)
-
-    const totalAnimationDuration = text.length * 0.005
-    setTimeout(() => {
-      if (textRef.current) {
-        textRef.current.innerHTML = text
-      }
-    }, totalAnimationDuration * 1000)
-  }, [text])
+  }
 
   if (!text || !title || !timestamp) {
     return (
@@ -91,23 +124,7 @@ export default function Result() {
   return (
     <>
       <NavigationBar />
-      <div className='flex flex-col items-center justify-start text-center'>
-        <div className='w-11/12 max-w-2xl text-left'>
-          <h1 className='lg:text-3xl md:text-2xl text-xl mx-auto lg:mt-20 mt-4 font-bold leading-relaxed'>
-            {title}
-          </h1>
-          <p className='md:text-sm mx-auto mt-4'>
-            {new Date(timestamp || Date.now()).toLocaleString('en-US', {
-              month: 'short',
-              day: '2-digit',
-              year: 'numeric',
-            })}
-          </p>
-          <p className='md:text-lg mx-auto mt-4' ref={textRef}>
-            {text}
-          </p>
-        </div>
-      </div>
+      <Note title={title} text={text} timestamp={timestamp} deleteNote={handleDelete} />
     </>
   )
 }
