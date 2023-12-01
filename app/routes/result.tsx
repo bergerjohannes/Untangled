@@ -1,12 +1,11 @@
 import { useLocation } from '@remix-run/react'
-import { useRef, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ActionFunctionArgs, json } from '@remix-run/node'
-import { useOutletContext, useFetcher, useNavigate } from '@remix-run/react'
+import { useFetcher, useNavigate } from '@remix-run/react'
 import NavigationBar from '~/components/navigationBar'
 import Note from '~/components/note'
 import supabaseClient from '~/utils/supabase.server'
 
-import type { SupabaseOutletContext } from '~/root'
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
 
 enum Intent {
@@ -17,6 +16,7 @@ enum Intent {
 interface CustomLocationState extends Location {
   textData: string
   titleData: string
+  transcriptData: string
   timestampData: number
 }
 
@@ -27,6 +27,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData()
   const text = formData.get('text') as string
   const title = formData.get('title') as string
+  const transcript = formData.get('transcript') as string
   const timestamp = formData.get('timestamp') as string
   const intent = Intent[formData.get('intent') as keyof typeof Intent]
 
@@ -43,7 +44,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (intent === Intent.Save) {
     const { data, error } = await supabase
       .from('notes')
-      .insert([{ owner: userId, title, text, timestamp }])
+      .insert([{ owner: userId, title, text, transcript, timestamp }])
 
     if (error) {
       console.error('Error adding note:', error)
@@ -55,7 +56,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const { data, error } = await supabase
       .from('notes')
       .delete()
-      .match({ owner: userId, title, text, timestamp })
+      .match({ owner: userId, title, text, transcript, timestamp })
 
     if (error) {
       console.error('Error deleting note:', error)
@@ -69,22 +70,22 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 }
 
 export default function Result() {
-  const textRef = useRef<HTMLDivElement>(null)
   const [text, setText] = useState<string | null>(null)
   const [title, setTitle] = useState<string | null>(null)
+  const [transcript, seTranscript] = useState<string | null>(null)
   const [timestamp, setTimestamp] = useState<number | null>(null)
   const [isSaved, setIsSaved] = useState<boolean>(false)
   const navigate = useNavigate()
 
   const location = useLocation()
   const state = location.state as CustomLocationState
-  const { textData, titleData, timestampData } = state || {}
+  const { textData, titleData, transcriptData, timestampData } = state || {}
 
   if (text === null) setText(textData)
   if (title === null) setTitle(titleData)
+  if (transcript === null) seTranscript(transcriptData)
   if (timestamp === null) setTimestamp(timestampData)
 
-  const { supabase } = useOutletContext<SupabaseOutletContext>()
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
 
@@ -93,7 +94,7 @@ export default function Result() {
   useEffect(() => {
     if (text && title && timestamp && !isSaved) {
       fetcher.submit(
-        { text, title, timestamp, intent: Intent.Save },
+        { text, title, transcript, timestamp, intent: Intent.Save },
         { method: 'post', action: '/result' }
       )
       setIsSaved(true)
@@ -103,7 +104,7 @@ export default function Result() {
   const handleDelete = async () => {
     if (text && title && timestamp) {
       await fetcher.submit(
-        { text, title, timestamp, intent: Intent.Delete },
+        { text, title, transcript, timestamp, intent: Intent.Delete },
         { method: 'post', action: '/result' }
       )
       navigate('/')

@@ -90,10 +90,7 @@ export default function Notes() {
   }, [])
 
   const handleDelete = async (id: string) => {
-    await fetcher.submit(
-      { id, intent: Intent.Delete },
-      { method: 'post', action: '/notes' }
-    )
+    await fetcher.submit({ id, intent: Intent.Delete }, { method: 'post', action: '/notes' })
   }
 
   if (user === null) {
@@ -111,17 +108,20 @@ export default function Notes() {
   return (
     <>
       <NavigationBar />
-      {notes
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .map((note) => (
-          <Note
-            title={note.title}
-            text={note.text}
-            timestamp={note.timestamp}
-            animate={false}
-            deleteNote={() => handleDelete(note.id)}
-          />
-        ))}
+      <div className='mb-20'>
+        <h1 className='text-3xl font-bold text-center'>Notes</h1>
+        {notes
+          .sort((a, b) => b.timestamp - a.timestamp)
+          .map((note) => (
+            <Note
+              title={note.title}
+              text={note.text}
+              timestamp={note.timestamp}
+              animate={false}
+              deleteNote={() => handleDelete(note.id)}
+            />
+          ))}
+      </div>
     </>
   )
 }

@@ -62,6 +62,7 @@ export const action: ActionFunction = async ({ request }) => {
           if (data) {
             const parsedData = JSON.parse(data)
             parsedData.timestamp = new Date().toISOString()
+            parsedData.transcript = transcript.text
             return json(parsedData, { status: 200 })
           } else {
             return new Response('Response data is null', { status: 500 })
@@ -90,6 +91,7 @@ enum State {
 interface FetcherData {
   title: string
   text: string
+  transcript: string
   timestamp: string
 }
 
@@ -137,6 +139,7 @@ export default function Index() {
         state: {
           textData: (fetcher.data as FetcherData).text,
           titleData: (fetcher.data as FetcherData).title,
+          transcriptData: (fetcher.data as FetcherData).transcript,
           timestampData: (fetcher.data as FetcherData).timestamp,
         },
       })
