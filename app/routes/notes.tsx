@@ -95,13 +95,16 @@ export default function Notes() {
 
   if (user === null) {
     return (
-      <div className='flex flex-col items-center'>
-        <h1 className='text-3xl font-bold'>Notes</h1>
-        <p>You are not logged in.</p>
-        <Link to='/login' state={{ from: location }}>
-          Log in!
-        </Link>
-      </div>
+      <>
+        <NavigationBar withoutMenu />
+        <div className='flex flex-col items-center'>
+          <h1 className='text-3xl font-bold'>Notes</h1>
+          <p>You are not logged in.</p>
+          <Link to='/login' state={{ from: location }}>
+            Log in!
+          </Link>
+        </div>
+      </>
     )
   }
 

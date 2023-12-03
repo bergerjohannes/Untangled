@@ -11,6 +11,7 @@ import AudioVisualizer from '~/components/audioVisualizer'
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
 import type { SupabaseOutletContext } from '~/root'
 import type { MetaFunction } from '@remix-run/node'
+import NavigationBar from '~/components/navigationBar'
 
 export const meta: MetaFunction = () => {
   return [
@@ -179,47 +180,51 @@ export default function Index() {
   }
 
   return (
-    <div className='flex flex-col items-center justify-start text-center'>
-      {state === State.Initial && (
-        <>
-          <HeaderInitial />
-          <MicrophoneWrapper>
-            <WaitingRecordingBubble handleRecord={handleRecord} />
-            <Illustration />
-          </MicrophoneWrapper>
-        </>
-      )}
-      {state === State.Recording && !mediaRecorder && (
-        <>
-          <HeaderRecording />
-          <MicrophoneWrapper>
-            <ActivatingRecordingBubble />
-            <Illustration />
-          </MicrophoneWrapper>
-        </>
-      )}
+    <>
+      <NavigationBar />
 
-      {state === State.Recording && mediaRecorder && (
-        <>
-          <HeaderRecording />
-          <MicrophoneWrapper>
-            <ActiveRecordingBubble handleRecord={handleRecord} mediaRecorder={mediaRecorder} />
-            <Illustration />
-          </MicrophoneWrapper>
-        </>
-      )}
+      <div className='flex flex-col items-center justify-start text-center'>
+        {state === State.Initial && (
+          <>
+            <HeaderInitial />
+            <MicrophoneWrapper>
+              <WaitingRecordingBubble handleRecord={handleRecord} />
+              <Illustration />
+            </MicrophoneWrapper>
+          </>
+        )}
+        {state === State.Recording && !mediaRecorder && (
+          <>
+            <HeaderRecording />
+            <MicrophoneWrapper>
+              <ActivatingRecordingBubble />
+              <Illustration />
+            </MicrophoneWrapper>
+          </>
+        )}
 
-      {state === State.Loading && (
-        <>
-          <div className='lg:h-96 h-32'></div>
-          <MicrophoneWrapper>
-            <LoadingRecordingBubble />
-          </MicrophoneWrapper>
-        </>
-      )}
+        {state === State.Recording && mediaRecorder && (
+          <>
+            <HeaderRecording />
+            <MicrophoneWrapper>
+              <ActiveRecordingBubble handleRecord={handleRecord} mediaRecorder={mediaRecorder} />
+              <Illustration />
+            </MicrophoneWrapper>
+          </>
+        )}
 
-      {state === State.Result && <></>}
-    </div>
+        {state === State.Loading && (
+          <>
+            <div className='lg:h-96 h-32'></div>
+            <MicrophoneWrapper>
+              <LoadingRecordingBubble />
+            </MicrophoneWrapper>
+          </>
+        )}
+
+        {state === State.Result && <></>}
+      </div>
+    </>
   )
 }
 
