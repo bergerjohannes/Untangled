@@ -228,14 +228,43 @@ export default function Index() {
   )
 }
 
-const WaitingRecordingBubble = ({ handleRecord }: { handleRecord: () => void }) => (
-  <div
-    className='z-20 bg-blackish w-24 h-24 text-2xl rounded-full cursor-pointer hover:animate-ready-movement flex justify-center items-center animate-idle-shadow-movement transition-all duration-300 hover:scale-110 hover:shadow-light-sm shadow-light-lg'
-    onClick={handleRecord}
-  >
-    <FontAwesomeIcon icon={faMicrophone} />
-  </div>
-)
+import { CSSTransition } from 'react-transition-group'
+
+const WaitingRecordingBubble = ({ handleRecord }: { handleRecord: () => void }) => {
+  const [isHovered, setIsHovered] = useState(false)
+  const [isLeaving, setIsLeaving] = useState(false)
+  const [isReady, setIsReady] = useState(false)
+
+  const handleMouseEnter = () => {
+    setIsHovered(true)
+    setIsLeaving(false)
+    setIsReady(true)
+  }
+
+  const handleMouseLeave = () => {
+    setIsHovered(false)
+    setIsLeaving(true)
+    setIsReady(false)
+    setTimeout(() => setIsLeaving(false), 1000) // 1000ms is the duration of your unready-movement animation
+  }
+
+  return (
+    <div
+      className={`z-20 bg-blackish w-24 h-24 text-2xl rounded-full cursor-pointer flex justify-center items-center transition-all duration-300 hover:scale-110 ${
+        isLeaving
+          ? 'animate-unready-movement'
+          : isReady
+          ? 'animate-ready-movement'
+          : 'animate-idle-shadow-movement'
+      }`}
+      onClick={handleRecord}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <FontAwesomeIcon icon={faMicrophone} />
+    </div>
+  )
+}
 
 const ActivatingRecordingBubble = () => (
   <div className='z-20 bg-blackish w-24 h-24 text-2xl rounded-full cursor-default flex justify-center items-center animate-ready-movement shadow-light-sm'>

@@ -16,13 +16,15 @@ export default {
         '256': '64rem',
       },
       animation: {
-        'ready-movement': 'box-shadow-shrink 1s, pulse-scale 2s infinite',
+        'ready-movement': 'box-shadow-shrink 0.5s forwards, pulse-scale 2s infinite',
         'post-action-movement':
           'pulse 2s infinite, shrink-bounce 20s infinite, box-shadow-transition 2s infinite',
         'idle-shadow-movement': 'box-shadow-transition-slight 3s linear infinite',
+        'unready-movement': 'box-shadow-grow 1s forwards',
       },
       boxShadow: {
-        'light-sm': '0 0 10px 2px #F5F5F5',
+        'light-sm': '0 0 5px 1px #F5F5F5, 0 0 0 0 #F5F5F5',
+        'light-md': '0 0 75px 0 #F5F5F5, 0 0 0 0 #F5F5F5',
         'light-lg': '0 0 150px 0 #F5F5F5, 0 0 0 0 #F5F5F5',
       },
       keyframes: {
@@ -54,18 +56,22 @@ export default {
           '100%': { transform: 'scale(1)' },
         },
         'box-shadow-transition': {
-          '0%': { boxShadow: '0 0 10px 2px #F5F5F5' },
+          '0%': { boxShadow: '0 0 5px 1px #F5F5F5, 0 0 0 0 #F5F5F5' },
           '50%': { boxShadow: '0 0 150px 0 #F5F5F5, 0 0 0 0 #F5F5F5' },
-          '100%': { boxShadow: '0 0 10px 2px #F5F5F5' },
+          '100%': { boxShadow: '0 0 5px 1px #F5F5F5, 0 0 0 0 #F5F5F5' },
         },
         'box-shadow-transition-slight': {
-          '0%': { boxShadow: '0 0 75px 0 #F5F5F5, 0 0 0 0 #F5F5F5' },
-          '50%': { boxShadow: '0 0 150px 0 #F5F5F5, 0 0 0 0 #F5F5F5' },
-          '100%': { boxShadow: '0 0 75px 0 #F5F5F5, 0 0 0 0 #F5F5F5' },
+          '0%': { boxShadow: '0 0 150px 0 #F5F5F5, 0 0 0 0 #F5F5F5' },
+          '50%': { boxShadow: '0 0 75px 0 #F5F5F5, 0 0 0 0 #F5F5F5' },
+          '100%': { boxShadow: '0 0 150px 0 #F5F5F5, 0 0 0 0 #F5F5F5' },
+        },
+        'box-shadow-grow': {
+          '0%': { boxShadow: '0 0 5px 1px #F5F5F5, 0 0 0 0 #F5F5F5' },
+          '100%': { boxShadow: '0 0 150px 0 #F5F5F5, 0 0 0 0 #F5F5F5' },
         },
         'box-shadow-shrink': {
           '0%': { boxShadow: '0 0 150px 0 #F5F5F5, 0 0 0 0 #F5F5F5' },
-          '100%': { boxShadow: '0 0 10px 2px #F5F5F5' },
+          '100%': { boxShadow: '0 0 5px 1px #F5F5F5, 0 0 0 0 #F5F5F5' },
         },
       },
     },
