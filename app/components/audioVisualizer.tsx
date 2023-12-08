@@ -15,6 +15,10 @@ const AudioVisualizer: React.FC<{ mediaRecorder: MediaRecorder | null }> = ({ me
     const barWidth = 16
     const numberOfBars = 12
     const radiusAtTopOfBar = 4
+    const barSpacing = 4
+    const totalBarWidth = barWidth + barSpacing
+    const totalWidth = totalBarWidth * numberOfBars - barSpacing
+    const startX = (canvas.width - totalWidth) / 2
 
     if (ctx) {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -24,7 +28,7 @@ const AudioVisualizer: React.FC<{ mediaRecorder: MediaRecorder | null }> = ({ me
     for (let i = 0; i < numberOfBars; ++i) {
       const value = dataArray.current[i]
       const barHeight = (value * canvas.height) / (255 * 3) // 1/3 of the canvas height
-      const barX = i * (barWidth + 4)
+      const barX = startX + i * totalBarWidth
       const barY = canvas.height - barHeight
 
       if (ctx) {
@@ -62,7 +66,7 @@ const AudioVisualizer: React.FC<{ mediaRecorder: MediaRecorder | null }> = ({ me
     }
   }, [mediaRecorder, draw])
 
-  return <canvas ref={canvasRef} className='w-24 h-24 rounded-full pointer-events-none' />
+  return <canvas ref={canvasRef} className='w-full h-full rounded-full pointer-events-none' />
 }
 
 export default AudioVisualizer

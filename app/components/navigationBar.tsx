@@ -48,23 +48,23 @@ const NavigationBar = ({ withoutMenu = false }) => {
           {renderLogo()}
           {!user && (
             <li className='flex space-x-4'>
-              <Link to='/' className='px-2 rounded hover:opacity-100 opacity-40'>
+              <Link to='/' className='px-2 rounded hover:opacity-100 opacity-40 text-sm sm:text-base'>
                 Record
               </Link>
-              <Link to='/signup' className='px-2 rounded hover:opacity-100 opacity-40'>
+              <Link to='/signup' className='px-2 rounded hover:opacity-100 opacity-40 text-sm sm:text-base'>
                 Sign Up
               </Link>
             </li>
           )}
           {user && !withoutMenu && (
             <li className='flex space-x-4'>
-              <Link to='/' className='px-2 rounded hover:opacity-100 opacity-40'>
+              <Link to='/' className='px-2 rounded hover:opacity-100 opacity-40 text-sm sm:text-base'>
                 Record
               </Link>
-              <Link to='/notes' className='px-2 rounded hover:opacity-100 opacity-40'>
+              <Link to='/notes' className='px-2 rounded hover:opacity-100 opacity-40 text-sm sm:text-base'>
                 Notes
               </Link>
-              <Link to='/profile' className='px-2 rounded hover:opacity-100 opacity-40'>
+              <Link to='/profile' className='px-2 rounded hover:opacity-100 opacity-40 text-sm sm:text-base'>
                 Profile
               </Link>
             </li>

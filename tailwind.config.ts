@@ -9,6 +9,7 @@ export default {
         whitish: '#F5F5F5',
       },
       height: {
+        '84': '21rem',
         '128': '32rem',
         '160': '40rem',
         '192': '48rem',

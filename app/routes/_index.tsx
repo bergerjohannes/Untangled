@@ -7,6 +7,8 @@ import { OpenAI } from 'openai'
 import { useAudioRecorder } from 'react-audio-voice-recorder'
 import Illustration from '~/components/illustration'
 import AudioVisualizer from '~/components/audioVisualizer'
+import Header from '../components/header'
+import PageWrapper from '~/components/pageWrapper'
 
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
 import type { SupabaseOutletContext } from '~/root'
@@ -183,7 +185,7 @@ export default function Index() {
     <>
       <NavigationBar />
 
-      <div className='flex flex-col items-center justify-start text-center'>
+      <PageWrapper>
         {state === State.Initial && (
           <>
             <HeaderInitial />
@@ -215,7 +217,7 @@ export default function Index() {
 
         {state === State.Loading && (
           <>
-            <div className='lg:h-96 h-32'></div>
+            <div className='lg:h-84 h-48'></div>
             <MicrophoneWrapper>
               <LoadingRecordingBubble />
             </MicrophoneWrapper>
@@ -223,12 +225,10 @@ export default function Index() {
         )}
 
         {state === State.Result && <></>}
-      </div>
+      </PageWrapper>
     </>
   )
 }
-
-import { CSSTransition } from 'react-transition-group'
 
 const WaitingRecordingBubble = ({ handleRecord }: { handleRecord: () => void }) => {
   const [isHovered, setIsHovered] = useState(false)
@@ -250,7 +250,7 @@ const WaitingRecordingBubble = ({ handleRecord }: { handleRecord: () => void }) 
 
   return (
     <div
-      className={`z-20 bg-blackish w-24 h-24 text-2xl rounded-full cursor-pointer flex justify-center items-center transition-all duration-300 hover:scale-110 ${
+      className={`z-20 bg-blackish lg:w-24 lg:h-24 w-20 h-20 text-2xl rounded-full cursor-pointer flex justify-center items-center transition-all duration-300 hover:scale-110 ${
         isLeaving
           ? 'animate-unready-movement'
           : isReady
@@ -267,7 +267,7 @@ const WaitingRecordingBubble = ({ handleRecord }: { handleRecord: () => void }) 
 }
 
 const ActivatingRecordingBubble = () => (
-  <div className='z-20 bg-blackish w-24 h-24 text-2xl rounded-full cursor-default flex justify-center items-center animate-ready-movement shadow-light-sm'>
+  <div className='z-20 bg-blackish lg:w-24 lg:h-24 w-20 h-20 text-2xl rounded-full cursor-default flex justify-center items-center animate-ready-movement shadow-light-sm'>
     <FontAwesomeIcon icon={faSpinner} className='animate-spin' />
   </div>
 )
@@ -280,10 +280,10 @@ const ActiveRecordingBubble = ({
   mediaRecorder: MediaRecorder
 }) => (
   <div
-    className='relative z-20 bg-blackish w-24 h-24 text-2xl rounded-full cursor-pointer animate-ready-movement flex justify-center items-center transition-all duration-300 hover:scale-110 shadow-light-sm'
+    className='relative z-20 bg-blackish lg:w-24 lg:h-24 w-20 h-20 text-2xl rounded-full cursor-pointer animate-ready-movement flex justify-center items-center transition-all duration-300 hover:scale-110 shadow-light-sm'
     onClick={handleRecord}
   >
-    <div className='absolute z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
+    <div className='lg:w-24 lg:h-24 w-20 h-20 absolute z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
       <AudioVisualizer mediaRecorder={mediaRecorder} />
     </div>
     <FontAwesomeIcon icon={faStop} />
@@ -291,32 +291,35 @@ const ActiveRecordingBubble = ({
 )
 
 const LoadingRecordingBubble = () => (
-  <div className='w-24 h-24 text-2xl bg-whitish rounded-full flex animate-post-action-movement justify-center items-center'></div>
+  <div className='lg:w-24 lg:h-24 w-20 h-20 text-2xl bg-whitish rounded-full flex animate-post-action-movement justify-center items-center'></div>
 )
 
 const MicrophoneWrapper = ({ children }: { children: ReactNode }) => (
-  <div className='w-full lg:h-96 h-160 m-12 relative flex justify-center items-center'>
+  <div className='w-full lg:h-96 h-96 sm:h-128 m-12 relative flex justify-center items-center'>
     {children}
   </div>
 )
 
 const HeaderInitial = () => (
-  <div className='lg:h-96 h-32 mx-auto'>
-    <h1 className='lg:text-6xl md:text-4xl text-2xl w-11/12 md:w-3/4 mx-auto lg:mt-20 mt-4 font-bold leading-relaxed'>
-      Turn Tangled Thoughts into Tidied Text, <span className='italic'>Fast</span>
-    </h1>
-    <p className='text-lg leading-relaxed w-11/12 lg:mt-12 mt-4 mx-auto'>
+  <>
+    <div className='lg:h-60 h-32 w-full'>
+      <Header>
+        Turn Tangled Thoughts into Tidied Text, <span className='italic'>Fast</span>
+      </Header>
+    </div>
+    <p className='lg:h-24 h-16 text-lg leading-relaxed w-11/12 mx-auto'>
       Start <span className='underline'>recording</span> and just talk.
       <br />
       AI will rewrite and structure your thoughts.
     </p>
-  </div>
+  </>
 )
 
 const HeaderRecording = () => (
-  <div className='lg:h-96 h-32 w-full mx-auto'>
-    <h1 className='lg:text-6xl md:text-4xl text-2xl w-11/12 md:w-3/4 mx-auto lg:mt-20 mt-4 font-bold leading-relaxed'>
-      Listening ..
-    </h1>
-  </div>
+  <>
+    <div className='lg:h-60 h-32 w-full'>
+      <Header>Listening ..</Header>
+    </div>
+    <p className='lg:h-24 h-16 text-lg leading-relaxed w-11/12 mx-auto'></p>
+  </>
 )
