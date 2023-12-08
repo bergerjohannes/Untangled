@@ -65,10 +65,18 @@ export default function Note({ title, text, timestamp, animate = true, deleteNot
     }, totalAnimationDuration * 1000)
   }, [textData, animate])
 
+  const [isHovered, setIsHovered] = useState(false)
+  const handleMouseEnter = () => setIsHovered(true)
+  const handleMouseLeave = () => setIsHovered(false)
+
   return (
-    <div className='flex flex-col items-center justify-start text-center'>
-      <div className='w-11/12 max-w-2xl text-left'>
-        <h1 className='lg:text-3xl md:text-2xl text-xl mx-auto lg:mt-20 mt-4 font-bold leading-relaxed'>
+    <div className={`flex flex-col items-center justify-start text-center w-full mb-12 lg:mb-8`}>
+      <div
+        className={`w-11/12 max-w-2xl text-left border-whitish p-2 rounded-xl ${
+          isHovered ? 'animate-idle-shadow-movement-tiny' : ''
+        }`}
+      >
+        <h1 className='lg:text-3xl md:text-2xl text-xl mx-auto font-bold leading-relaxed'>
           {titleData}
         </h1>
         <p className='md:text-sm mx-auto mt-4'>
@@ -78,10 +86,15 @@ export default function Note({ title, text, timestamp, animate = true, deleteNot
             year: 'numeric',
           })}
         </p>
-        <p className='md:text-lg mx-auto mt-4' ref={textRef}>{textData}</p>
+        <p className='md:text-lg mx-auto mt-4'>{textData}</p>
         {showDeleteButton && (
           <div className='flex w-full items-center justify-start mt-4'>
-            <button onClick={deleteNote} className='delete-button'>
+            <button
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              onClick={deleteNote}
+              className='delete-button hover:opacity-100 opacity-40'
+            >
               <FontAwesomeIcon icon={faTrashAlt} />
             </button>
           </div>

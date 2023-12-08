@@ -4,6 +4,8 @@ import { useState } from 'react'
 
 import type { SupabaseOutletContext } from '~/root'
 import { LogoWithText } from './logo'
+import SimpleButton from './simpleButton'
+import ProminentButton from './prominentButton'
 
 export enum AuthType {
   LogIn = 'logIn',
@@ -69,10 +71,12 @@ const Auth = ({ type, location }: AuthProps) => {
 
   return (
     <div className='flex flex-col md:flex-row m-auto w-full h-full absolute top-0 left-0'>
-      <div className='md:w-1/2 bg-blackish text-whitish flex flex-col justify-center items-center'>
-        <LogoWithText />
+      <div className='md:w-1/2 bg-whitish text-blackish flex flex-col justify-center items-center'>
+        <Link to='/'>
+          <LogoWithText />
+        </Link>
       </div>
-      <div className='md:w-1/2 bg-whitish text-blackish flex flex-col items-center justify-center'>
+      <div className='md:w-1/2 bg-blackish text-whitish flex flex-col items-center justify-center'>
         <h2 className='text-3xl font-bold mb-4'>{title}</h2>
         <div className='grid grid-rows-3 gap-2'>
           <div className='grid grid-rows-2 grid-cols-3 gap-2'>
@@ -81,21 +85,23 @@ const Auth = ({ type, location }: AuthProps) => {
               value={email}
               type='email'
               onChange={(e) => setEmail(e.target.value)}
-              className='rounded-md px-2 py-1 ml-2 focus:outline-primary w-full col-span-2'
+              className='rounded-3xl px-2 py-1 ml-2 focus:outline-none w-full col-span-2 text-blackish'
             />
             <label className='col-span-1'>Password</label>
             <input
               value={password}
               type='password'
               onChange={(e) => setPassword(e.target.value)}
-              className='rounded-md px-2 py-1 ml-2 focus:outline-primary w-full col-span-2'
+              className='rounded-3xl px-2 py-1 ml-2 focus:outline-none w-full col-span-2 text-blackish'
             />
           </div>
           <div className='flex w-full h-fit'>
-            <button onClick={handleAction}>{buttonText}</button>
+            <ProminentButton onClick={handleAction}>{buttonText}</ProminentButton>
           </div>
         </div>
-        <Link to={linkTo}>{linkText}</Link>
+        <Link to={linkTo}>
+          <SimpleButton>{linkText}</SimpleButton>
+        </Link>
       </div>
     </div>
   )

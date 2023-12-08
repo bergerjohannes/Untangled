@@ -1,14 +1,12 @@
 import { json, ActionFunction } from '@remix-run/node'
 import { useOutletContext, useFetcher, useNavigate } from '@remix-run/react'
 import { useState, useEffect, ReactNode } from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMicrophone, faSpinner, faStop } from '@fortawesome/free-solid-svg-icons'
 import { OpenAI } from 'openai'
 import { useAudioRecorder } from 'react-audio-voice-recorder'
 import Illustration from '~/components/illustration'
-import AudioVisualizer from '~/components/audioVisualizer'
 import Header from '../components/header'
 import PageWrapper from '~/components/pageWrapper'
+import RecordingBubble, { RecordingState } from '~/components/recordingBubble'
 
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
 import type { SupabaseOutletContext } from '~/root'
@@ -190,7 +188,10 @@ export default function Index() {
           <>
             <HeaderInitial />
             <MicrophoneWrapper>
-              <WaitingRecordingBubble handleRecord={handleRecord} />
+              <RecordingBubble
+                recordingState={RecordingState.Waiting}
+                handleRecord={handleRecord}
+              />
               <Illustration />
             </MicrophoneWrapper>
           </>
@@ -199,7 +200,7 @@ export default function Index() {
           <>
             <HeaderRecording />
             <MicrophoneWrapper>
-              <ActivatingRecordingBubble />
+              <RecordingBubble recordingState={RecordingState.Activating} />
               <Illustration />
             </MicrophoneWrapper>
           </>
@@ -209,7 +210,11 @@ export default function Index() {
           <>
             <HeaderRecording />
             <MicrophoneWrapper>
-              <ActiveRecordingBubble handleRecord={handleRecord} mediaRecorder={mediaRecorder} />
+              <RecordingBubble
+                recordingState={RecordingState.Active}
+                handleRecord={handleRecord}
+                mediaRecorder={mediaRecorder}
+              />
               <Illustration />
             </MicrophoneWrapper>
           </>
@@ -219,7 +224,7 @@ export default function Index() {
           <>
             <div className='lg:h-84 h-48'></div>
             <MicrophoneWrapper>
-              <LoadingRecordingBubble />
+              <RecordingBubble recordingState={RecordingState.Loading} />
             </MicrophoneWrapper>
           </>
         )}
@@ -229,70 +234,6 @@ export default function Index() {
     </>
   )
 }
-
-const WaitingRecordingBubble = ({ handleRecord }: { handleRecord: () => void }) => {
-  const [isHovered, setIsHovered] = useState(false)
-  const [isLeaving, setIsLeaving] = useState(false)
-  const [isReady, setIsReady] = useState(false)
-
-  const handleMouseEnter = () => {
-    setIsHovered(true)
-    setIsLeaving(false)
-    setIsReady(true)
-  }
-
-  const handleMouseLeave = () => {
-    setIsHovered(false)
-    setIsLeaving(true)
-    setIsReady(false)
-    setTimeout(() => setIsLeaving(false), 1000) // 1000ms is the duration of your unready-movement animation
-  }
-
-  return (
-    <div
-      className={`z-20 bg-blackish lg:w-24 lg:h-24 w-20 h-20 text-2xl rounded-full cursor-pointer flex justify-center items-center transition-all duration-300 hover:scale-110 ${
-        isLeaving
-          ? 'animate-unready-movement'
-          : isReady
-          ? 'animate-ready-movement'
-          : 'animate-idle-shadow-movement'
-      }`}
-      onClick={handleRecord}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <FontAwesomeIcon icon={faMicrophone} />
-    </div>
-  )
-}
-
-const ActivatingRecordingBubble = () => (
-  <div className='z-20 bg-blackish lg:w-24 lg:h-24 w-20 h-20 text-2xl rounded-full cursor-default flex justify-center items-center animate-ready-movement shadow-light-sm'>
-    <FontAwesomeIcon icon={faSpinner} className='animate-spin' />
-  </div>
-)
-
-const ActiveRecordingBubble = ({
-  handleRecord,
-  mediaRecorder,
-}: {
-  handleRecord: () => void
-  mediaRecorder: MediaRecorder
-}) => (
-  <div
-    className='relative z-20 bg-blackish lg:w-24 lg:h-24 w-20 h-20 text-2xl rounded-full cursor-pointer animate-ready-movement flex justify-center items-center transition-all duration-300 hover:scale-110 shadow-light-sm'
-    onClick={handleRecord}
-  >
-    <div className='lg:w-24 lg:h-24 w-20 h-20 absolute z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
-      <AudioVisualizer mediaRecorder={mediaRecorder} />
-    </div>
-    <FontAwesomeIcon icon={faStop} />
-  </div>
-)
-
-const LoadingRecordingBubble = () => (
-  <div className='lg:w-24 lg:h-24 w-20 h-20 text-2xl bg-whitish rounded-full flex animate-post-action-movement justify-center items-center'></div>
-)
 
 const MicrophoneWrapper = ({ children }: { children: ReactNode }) => (
   <div className='w-full lg:h-96 h-96 sm:h-128 m-12 relative flex justify-center items-center'>

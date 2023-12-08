@@ -5,6 +5,7 @@ import { SupabaseOutletContext } from '~/root'
 import { useEffect, useState } from 'react'
 
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
+import SimpleButton from './simpleButton'
 
 const NavigationBar = ({ withoutMenu = false }) => {
   const { supabase } = useOutletContext<SupabaseOutletContext>()
@@ -48,24 +49,24 @@ const NavigationBar = ({ withoutMenu = false }) => {
           {renderLogo()}
           {!user && (
             <li className='flex space-x-4'>
-              <Link to='/' className='px-2 rounded hover:opacity-100 opacity-40 text-sm sm:text-base'>
-                Record
+              <Link to='/'>
+                <SimpleButton>Record</SimpleButton>
               </Link>
-              <Link to='/signup' className='px-2 rounded hover:opacity-100 opacity-40 text-sm sm:text-base'>
-                Sign Up
+              <Link to='/signup'>
+                <SimpleButton>Sign Up</SimpleButton>
               </Link>
             </li>
           )}
           {user && !withoutMenu && (
             <li className='flex space-x-4'>
-              <Link to='/' className='px-2 rounded hover:opacity-100 opacity-40 text-sm sm:text-base'>
-                Record
+              <Link to='/'>
+                <SimpleButton>Record</SimpleButton>
               </Link>
-              <Link to='/notes' className='px-2 rounded hover:opacity-100 opacity-40 text-sm sm:text-base'>
-                Notes
+              <Link to='/notes'>
+                <SimpleButton>Notes</SimpleButton>
               </Link>
-              <Link to='/profile' className='px-2 rounded hover:opacity-100 opacity-40 text-sm sm:text-base'>
-                Profile
+              <Link to='/profile'>
+                <SimpleButton>Profile</SimpleButton>
               </Link>
             </li>
           )}

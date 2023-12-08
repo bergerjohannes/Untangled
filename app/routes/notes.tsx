@@ -6,9 +6,13 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import NavigationBar from '~/components/navigationBar'
 import Note from '~/components/note'
+import EmptyState from '~/components/emptyState'
+import Header from '~/components/header'
 
 import type { SupabaseOutletContext } from '~/root'
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
+import PageWrapper from '~/components/pageWrapper'
+import Button from '~/components/prominentButton'
 
 type Note = {
   id: string
@@ -75,7 +79,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 }
 
 export default function Notes() {
-  const { notes } = useLoaderData<typeof loader>()
+  const { notes }: { notes: Note[] } = useLoaderData<typeof loader>()
   const { supabase } = useOutletContext<SupabaseOutletContext>()
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
@@ -97,13 +101,29 @@ export default function Notes() {
     return (
       <>
         <NavigationBar withoutMenu />
-        <div className='flex flex-col items-center'>
-          <h1 className='text-3xl font-bold'>Notes</h1>
+        <PageWrapper>
+          <Header>Notes</Header>
           <p>You are not logged in.</p>
           <Link to='/login' state={{ from: location }}>
             Log in!
           </Link>
-        </div>
+        </PageWrapper>
+      </>
+    )
+  }
+
+  if (notes.length === 0) {
+    return (
+      <>
+        <NavigationBar />
+        <PageWrapper>
+          <Header>Notes</Header>
+          <EmptyState />
+          <p className='my-12 text-whitish'>Nothing here yet!</p>
+          <Link to='/'>
+            <Button>Record your first note</Button>
+          </Link>
+        </PageWrapper>
       </>
     )
   }
@@ -111,8 +131,8 @@ export default function Notes() {
   return (
     <>
       <NavigationBar />
-      <div className='mb-20'>
-        <h1 className='text-3xl font-bold text-center'>Notes</h1>
+      <PageWrapper>
+        <Header>Notes</Header>
         {notes
           .sort((a, b) => b.timestamp - a.timestamp)
           .map((note) => (
@@ -124,7 +144,7 @@ export default function Notes() {
               deleteNote={() => handleDelete(note.id)}
             />
           ))}
-      </div>
+      </PageWrapper>
     </>
   )
 }
