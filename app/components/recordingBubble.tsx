@@ -72,7 +72,7 @@ const WaitingRecordingBubble = ({ handleRecord }: { handleRecord: () => void }) 
 }
 
 const ActivatingRecordingBubble = () => (
-  <div className='z-20 bg-blackish lg:w-24 lg:h-24 w-20 h-20 text-2xl rounded-full cursor-default flex justify-center items-center animate-ready-movement shadow-light-sm'>
+  <div className='z-20 bg-blackish lg:w-24 lg:h-24 w-20 h-20 text-2xl rounded-full cursor-default flex justify-center items-center shadow-light-sm'>
     <FontAwesomeIcon icon={faSpinner} className='animate-spin' />
   </div>
 )
@@ -85,7 +85,7 @@ const ActiveRecordingBubble = ({
   mediaRecorder: MediaRecorder
 }) => (
   <div
-    className='relative z-20 bg-blackish lg:w-24 lg:h-24 w-20 h-20 text-2xl rounded-full cursor-pointer animate-ready-movement flex justify-center items-center transition-all duration-300 hover:scale-110 shadow-light-sm'
+    className='relative z-20 bg-blackish lg:w-24 lg:h-24 w-20 h-20 text-2xl rounded-full cursor-pointer flex justify-center items-center transition-all duration-300 hover:scale-110 shadow-light-sm'
     onClick={handleRecord}
   >
     <div className='lg:w-24 lg:h-24 w-20 h-20 absolute z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
