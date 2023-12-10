@@ -2,12 +2,13 @@ import { LoaderFunctionArgs, json, ActionFunctionArgs } from '@remix-run/node'
 import { useLoaderData, useLocation } from '@remix-run/react'
 import supabaseClient from '~/utils/supabase.server'
 import { useOutletContext, useFetcher } from '@remix-run/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import NavigationBar from '~/components/navigationBar'
 import Note from '~/components/note'
 import EmptyState from '~/components/emptyState'
 import Header from '~/components/header'
+import Modal, { ModalRef } from '~/components/modal'
 
 import type { SupabaseOutletContext } from '~/root'
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
@@ -83,8 +84,11 @@ export default function Notes() {
   const { supabase } = useOutletContext<SupabaseOutletContext>()
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
+  const modalRef = useRef<ModalRef>(null)
   const location = useLocation()
   const fetcher = useFetcher()
+  const [noteToDelete, setNoteToDelete] = useState<string | null>(null)
+  const [noteTitleToDelete, setNoteTitleToDelete] = useState<string | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -93,8 +97,28 @@ export default function Notes() {
     })
   }, [])
 
-  const handleDelete = async (id: string) => {
-    await fetcher.submit({ id, intent: Intent.Delete }, { method: 'post', action: '/notes' })
+  const handleDelete = async (id: string, title: string) => {
+    setNoteToDelete(id)
+    setNoteTitleToDelete(title)
+    modalRef.current?.show()
+  }
+
+  const confirmDelete = async () => {
+    if (noteToDelete) {
+      await fetcher.submit(
+        { id: noteToDelete, intent: Intent.Delete },
+        { method: 'post', action: '/notes' }
+      )
+      modalRef.current?.hide()
+      setNoteToDelete(null)
+      setNoteTitleToDelete(null)
+    }
+  }
+
+  const cancelDelete = () => {
+    modalRef.current?.hide()
+    setNoteToDelete(null)
+    setNoteTitleToDelete(null)
   }
 
   if (user === null) {
@@ -137,14 +161,26 @@ export default function Notes() {
           .sort((a, b) => b.timestamp - a.timestamp)
           .map((note) => (
             <Note
-            key={note.id}
+              key={note.id}
               title={note.title}
               text={note.text}
               timestamp={note.timestamp}
               animate={false}
-              deleteNote={() => handleDelete(note.id)}
+              deleteNote={() => handleDelete(note.id, note.title)}
             />
           ))}
+        <Modal
+          ref={modalRef}
+          headerText='Confirm Delete'
+          confirmButtonText='Delete'
+          confirmAction={confirmDelete}
+          cancelButtonText='Cancel'
+          cancelAction={cancelDelete}
+        >
+          <p>
+            Are you sure you want to delete "<span className='italic'>{noteTitleToDelete}</span>"?
+          </p>
+        </Modal>
       </PageWrapper>
     </>
   )

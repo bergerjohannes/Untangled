@@ -72,8 +72,8 @@ export default function Note({ title, text, timestamp, animate = true, deleteNot
   return (
     <div className={`flex flex-col items-center justify-start text-center w-full mb-12 lg:mb-8`}>
       <div
-        className={`w-11/12 max-w-2xl text-left border-whitish lg:p-4 p-2 rounded-xl ${
-          isHovered ? 'animate-idle-shadow-movement-tiny' : ''
+        className={`w-11/12 max-w-2xl text-left lg:p-4 p-2 rounded-xl ${
+          isHovered ? 'border-2 border-opacity-20 border-whitish' : 'border-2 border-opacity-20 border-blackish'
         }`}
       >
         <h1 className='lg:text-3xl md:text-2xl text-xl mx-auto font-bold leading-relaxed'>
