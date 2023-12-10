@@ -137,6 +137,7 @@ export default function Notes() {
           .sort((a, b) => b.timestamp - a.timestamp)
           .map((note) => (
             <Note
+            key={note.id}
               title={note.title}
               text={note.text}
               timestamp={note.timestamp}
