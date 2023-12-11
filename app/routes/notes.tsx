@@ -81,6 +81,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function Notes() {
   const { notes }: { notes: Note[] } = useLoaderData<typeof loader>()
+  const [localNotes, setLocalNotes] = useState<Note[]>([])
   const { supabase } = useOutletContext<SupabaseOutletContext>()
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
@@ -89,6 +90,10 @@ export default function Notes() {
   const fetcher = useFetcher()
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null)
   const [noteTitleToDelete, setNoteTitleToDelete] = useState<string | null>(null)
+
+  useEffect(() => {
+    setLocalNotes(notes)
+  }, [notes])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -105,10 +110,14 @@ export default function Notes() {
 
   const confirmDelete = async () => {
     if (noteToDelete) {
+      // Optimistically remove the note from the UI
+      setLocalNotes(localNotes.filter((note) => note.id !== noteToDelete))
+
       await fetcher.submit(
         { id: noteToDelete, intent: Intent.Delete },
         { method: 'post', action: '/notes' }
       )
+
       modalRef.current?.hide()
       setNoteToDelete(null)
       setNoteTitleToDelete(null)
@@ -157,7 +166,7 @@ export default function Notes() {
       <NavigationBar />
       <PageWrapper>
         <Header>Notes</Header>
-        {notes
+        {localNotes
           .sort((a, b) => b.timestamp - a.timestamp)
           .map((note) => (
             <Note
