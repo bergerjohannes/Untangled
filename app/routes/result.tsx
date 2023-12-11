@@ -75,6 +75,7 @@ export default function Result() {
   const [transcript, seTranscript] = useState<string | null>(null)
   const [timestamp, setTimestamp] = useState<number | null>(null)
   const [isSaved, setIsSaved] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(true)
   const navigate = useNavigate()
 
   const location = useLocation()
@@ -99,6 +100,7 @@ export default function Result() {
       )
       setIsSaved(true)
     }
+    setLoading(false)
   }, [text, title, timestamp, fetcher, isSaved])
 
   const handleDelete = async () => {
@@ -109,6 +111,14 @@ export default function Result() {
       )
       navigate('/')
     }
+  }
+
+  if (loading) {
+    return (
+      <>
+        <NavigationBar />
+      </>
+    )
   }
 
   if (!text || !title || !timestamp) {

@@ -20,14 +20,14 @@ export default function Note({ title, text, timestamp, animate = true, deleteNot
   useEffect(() => {
     if (!textData || !textRef.current || !animate) return
 
-    const wrapLettersWithSpan = (node: Node) => {
+    const wrapWordsWithSpan = (node: Node) => {
       if (node instanceof HTMLElement) {
         if (node.nodeType === Node.ELEMENT_NODE) {
           Array.from(node.childNodes).forEach((child) => {
             if (child instanceof HTMLElement) {
-              wrapLettersWithSpan(child)
+              wrapWordsWithSpan(child)
             } else if (child.nodeType === Node.TEXT_NODE) {
-              wrapLettersWithSpan(child)
+              wrapWordsWithSpan(child)
             }
           })
         } else {
@@ -35,9 +35,10 @@ export default function Note({ title, text, timestamp, animate = true, deleteNot
         }
       } else if (node instanceof Text) {
         const text = node.textContent || ''
-        const wrappedText = Array.from(text)
-          .map((letter) => `<span>${letter}</span>`)
-          .join('')
+        const wrappedText = text
+          .split(' ')
+          .map((word) => `<span>${word}</span>`)
+          .join(' ')
 
         const spanContainer = document.createElement('span')
         spanContainer.innerHTML = wrappedText
@@ -53,7 +54,7 @@ export default function Note({ title, text, timestamp, animate = true, deleteNot
       })
     }
 
-    wrapLettersWithSpan(textRef.current)
+    wrapWordsWithSpan(textRef.current)
     addAnimationDelay(textRef.current)
 
     const totalAnimationDuration = text.length * 0.005
@@ -73,7 +74,9 @@ export default function Note({ title, text, timestamp, animate = true, deleteNot
     <div className={`flex flex-col items-center justify-start text-center w-full mb-12 lg:mb-8`}>
       <div
         className={`w-11/12 max-w-2xl text-left lg:p-4 p-2 rounded-xl ${
-          isHovered ? 'border-2 border-opacity-20 border-whitish' : 'border-2 border-opacity-20 border-blackish'
+          isHovered
+            ? 'border-2 border-opacity-20 border-whitish'
+            : 'border-2 border-opacity-20 border-blackish'
         }`}
       >
         <h1 className='lg:text-3xl md:text-2xl text-xl mx-auto font-bold leading-relaxed'>
@@ -86,7 +89,9 @@ export default function Note({ title, text, timestamp, animate = true, deleteNot
             year: 'numeric',
           })}
         </p>
-        <p className='md:text-lg mx-auto mt-4'>{textData}</p>
+        <p className='md:text-lg mx-auto mt-4' ref={textRef}>
+          {textData}
+        </p>
         {showDeleteButton && (
           <div className='flex w-full items-center justify-start mt-4'>
             <button

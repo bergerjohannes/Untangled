@@ -90,6 +90,7 @@ export default function Notes() {
   const fetcher = useFetcher()
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null)
   const [noteTitleToDelete, setNoteTitleToDelete] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLocalNotes(notes)
@@ -99,6 +100,7 @@ export default function Notes() {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
       setUser(data.session?.user ?? null)
+      setLoading(false)
     })
   }, [])
 
@@ -128,6 +130,17 @@ export default function Notes() {
     modalRef.current?.hide()
     setNoteToDelete(null)
     setNoteTitleToDelete(null)
+  }
+
+  if (loading) {
+    return (
+      <>
+        <NavigationBar />
+        <PageWrapper>
+          <Header>Notes</Header>
+        </PageWrapper>
+      </>
+    )
   }
 
   if (user === null) {

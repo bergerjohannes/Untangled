@@ -25,6 +25,7 @@ export default function Profile() {
   const { supabase } = useOutletContext<SupabaseOutletContext>()
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -32,6 +33,7 @@ export default function Profile() {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
       setUser(data.session?.user ?? null)
+      setLoading(false)
     })
   }, [])
 
@@ -42,6 +44,17 @@ export default function Profile() {
     } else {
       navigate('/')
     }
+  }
+
+  if (loading) {
+    return (
+      <>
+        <NavigationBar />
+        <PageWrapper>
+          <Header>Profile</Header>
+        </PageWrapper>
+      </>
+    )
   }
 
   if (user === null) {
