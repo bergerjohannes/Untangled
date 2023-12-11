@@ -64,7 +64,7 @@ export default function Profile() {
       <NavigationBar />
       <PageWrapper>
         <Header>Profile</Header>
-        {profile && <p className='mb-16'>You are logged in as {profile.username}</p>}
+        {user && <p className='mb-16'>You are logged in as {user.email}</p>}
         <Button onClick={() => logOut()}>Log out</Button>
       </PageWrapper>
     </>
