@@ -1,5 +1,6 @@
 import { createServerClient as _createServerClient } from '@supabase/auth-helpers-remix'
 import type { Database } from 'supabase_types'
+import { createClient } from '@supabase/supabase-js'
 
 interface ServerClientParams {
   request: Request
@@ -11,3 +12,8 @@ export default ({ request, response }: ServerClientParams) =>
     request,
     response,
   })
+
+const supabaseUrl = process.env.SUPABASE_URL!
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)

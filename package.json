@@ -24,6 +24,7 @@
     "react": "^18.2.0",
     "react-audio-voice-recorder": "^2.2.0",
     "react-dom": "^18.2.0",
+    "stripe": "^14.19.0",
     "supabase": "^1.113.3"
   },
   "devDependencies": {
