@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs, json, ActionFunctionArgs } from '@remix-run/node'
+import { LoaderFunctionArgs, json, ActionFunctionArgs, redirect } from '@remix-run/node'
 import { useLoaderData, useLocation } from '@remix-run/react'
 import supabaseClient from '~/utils/supabase.server'
 import { useOutletContext, useFetcher } from '@remix-run/react'
@@ -6,7 +6,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import NavigationBar from '~/components/navigationBar'
 import Note from '~/components/note'
-import EmptyState from '~/components/emptyState'
+import EmptyState from '~/components/EmptyState'
 import Header from '~/components/header'
 import Modal, { ModalRef } from '~/components/modal'
 
@@ -67,6 +67,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   } = await supabase.auth.getSession()
 
   const userId = session?.user?.id ?? null
+  if (!userId) {
+    return redirect('/signup')
+  }
 
   let notes: Note[] = []
   if (userId) {
@@ -138,21 +141,6 @@ export default function Notes() {
         <NavigationBar />
         <PageWrapper>
           <Header>Notes</Header>
-        </PageWrapper>
-      </>
-    )
-  }
-
-  if (user === null) {
-    return (
-      <>
-        <NavigationBar withoutMenu />
-        <PageWrapper>
-          <Header>Notes</Header>
-          <p>You are not logged in.</p>
-          <Link to='/login' state={{ from: location }}>
-            Log in!
-          </Link>
         </PageWrapper>
       </>
     )

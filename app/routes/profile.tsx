@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs, json } from '@remix-run/node'
+import { LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 import { Link, useLoaderData, useLocation, useNavigate } from '@remix-run/react'
 import supabaseClient from '~/utils/supabase.server'
 import { useOutletContext } from '@remix-run/react'
@@ -14,6 +14,15 @@ import Header from '~/components/header'
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const response = new Response()
   const supabase = supabaseClient({ request, response })
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  const userId = session?.user?.id ?? null
+  if (!userId) {
+    return redirect('/signup')
+  }
 
   const { data: profile } = await supabase.from('profiles').select().limit(1)
 
@@ -52,21 +61,6 @@ export default function Profile() {
         <NavigationBar />
         <PageWrapper>
           <Header>Profile</Header>
-        </PageWrapper>
-      </>
-    )
-  }
-
-  if (user === null) {
-    return (
-      <>
-        <NavigationBar withoutMenu />
-        <PageWrapper>
-          <Header>Profile</Header>
-          <p>You are not logged in.</p>
-          <Link to='/login' state={{ from: location }}>
-            Log in!
-          </Link>
         </PageWrapper>
       </>
     )
