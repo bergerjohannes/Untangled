@@ -32,34 +32,27 @@ export const ensureStripeCustomer = async (
       return user.stripe_customer_id
     }
   } catch (error: any) {
-    console.error('Error ensuring Stripe customer:', error.message)
+    return null
   }
-  return null
 }
 
-export const hasActiveSubscription = async (userId: string | undefined) => {
-  if (!userId) {
-    throw new Error('Invalid user ID')
+export const hasActiveSubscription = async (stripeCustomerId: string | undefined) => {
+  if (!stripeCustomerId) {
+    throw new Error('Stripe customer ID not provided')
   }
   try {
-    const user = await getUserProfile(userId)
-    if (!user.stripe_customer_id) {
-      throw new Error('Stripe customer ID not found for this user')
-    }
-    const subscriptions = await stripe.subscriptions.list({ customer: user.stripe_customer_id })
-    return subscriptions.data.length > 0 // TODO: check if they are active
+    const subscriptions = await stripe.subscriptions.list({ customer: stripeCustomerId })
+    return subscriptions.data.some((subscription) => subscription.status === 'active')
   } catch (error: any) {
-    console.error('Error checking for active subscription:', error.message)
     return false
   }
 }
 
 export const loadStripeProducts = async () => {
   try {
-    const products = await stripe.products.list()
+    const products = await stripe.products.list({ active: true })
     return products.data
   } catch (error: any) {
-    console.error('Error loading Stripe products:', error.message)
     return []
   }
 }
@@ -69,14 +62,11 @@ export const loadStripePrices = async (productId: string) => {
     const prices = await stripe.prices.list({ product: productId })
     return prices.data
   } catch (error: any) {
-    console.error('Error loading Stripe prices:', error.message)
     return []
   }
 }
 
 export const createCheckoutSession = async (priceId: string, stripeCustomerId: string) => {
-  console.log('createCheckoutSession 1: ', priceId)
-  console.log('createCheckoutSession 2: ', stripeCustomerId)
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -93,7 +83,68 @@ export const createCheckoutSession = async (priceId: string, stripeCustomerId: s
     })
     return session
   } catch (error: any) {
-    console.error('Error creating Stripe checkout session:', error.message)
     return null
+  }
+}
+
+const updateSubscriptionStatus = async (
+  subscription: Stripe.Subscription,
+  stripeCustomerId: string
+) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({
+      stripe_subscription_id: subscription.id,
+      stripe_subscription_status: subscription.status,
+    })
+    .eq('stripe_customer_id', stripeCustomerId)
+}
+
+export const handleStripeWebhook = async (request: Request, response: Response) => {
+  const sig = request.headers.get('stripe-signature')
+  let event
+  const payload = await request.text()
+
+  try {
+    const secret = process.env.STRIPE_WEBHOOK_SECRET
+    if (!secret) throw new Error('STRIPE_WEBHOOK_SECRET is not set')
+    if (!sig) throw new Error('Stripe signature not found in headers')
+    event = stripe.webhooks.constructEvent(payload, sig, secret)
+  } catch (err: any) {
+    return new Response('Webhook Error:' + err.message, { status: 400 })
+  }
+
+  if (
+    event.type === 'checkout.session.completed' ||
+    event.type === 'checkout.session.async_payment_succeeded'
+  ) {
+    const session = event.data.object
+    if (session.payment_status === 'paid') {
+      if (typeof session.subscription === 'string') {
+        const subscription = await stripe.subscriptions.retrieve(session.subscription)
+        if (subscription) {
+          if (typeof session.customer === 'string') {
+            await updateSubscriptionStatus(subscription, session.customer)
+          } else {
+            throw new Error('Customer ID not set')
+          }
+        } else {
+          throw new Error('Subscription ID nost set')
+        }
+      }
+    }
+
+    return new Response('Webhook received', { status: 200 })
+  } else if (
+    event.type === 'customer.subscription.deleted' ||
+    event.type === 'customer.subscription.updated'
+  ) {
+    const subscription = event.data.object
+    if (typeof subscription.customer === 'string') {
+      await updateSubscriptionStatus(subscription, subscription.customer)
+      return new Response('Webhook received', { status: 200 })
+    } else {
+      throw new Error('Customer ID not set')
+    }
   }
 }

@@ -7,6 +7,7 @@ import Header from '~/components/header'
 import ProminentButton from '~/components/prominentButton'
 import {
   ensureStripeCustomer,
+  hasActiveSubscription,
   loadStripeProducts,
   loadStripePrices,
   createCheckoutSession,
@@ -38,6 +39,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   const stripeCustomerId = await ensureStripeCustomer(userId, session?.user?.email)
+  const isSubscriber = await hasActiveSubscription(stripeCustomerId ?? undefined)
   const availableProducts = await loadStripeProducts()
   const productsWithPrices = []
   for (const product of availableProducts) {
@@ -45,7 +47,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     productsWithPrices.push({ product, prices })
   }
 
-  return json({ productsWithPrices, stripeCustomerId })
+  return json({ productsWithPrices, stripeCustomerId, isSubscriber })
 }
 
 interface Price {
@@ -58,21 +60,34 @@ interface Price {
 interface LoaderData {
   productsWithPrices: { product: any; prices: any }[]
   stripeCustomerId: string
+  isSubscriber: boolean
 }
 
 const PaymentPage = () => {
-  const { productsWithPrices, stripeCustomerId } = useLoaderData() as LoaderData
+  const { productsWithPrices, stripeCustomerId, isSubscriber } = useLoaderData() as LoaderData
   const fetcher = useFetcher()
 
   const checkout = async (priceId: string) => {
     await fetcher.submit({ priceId, stripeCustomerId }, { method: 'POST', action: '/subscribe' })
   }
 
+  if (isSubscriber) {
+    return (
+      <>
+        <NavigationBar />
+        <PageWrapper>
+          <Header>You are subscribed</Header>
+          <p className='my-12 text-whitish'>You are already subscribed to Untangled Notes Plus.</p>
+        </PageWrapper>
+      </>
+    )
+  }
+
   return (
     <>
       <NavigationBar />
       <PageWrapper>
-        <Header>Payment</Header>
+        <Header>Subscribe to Untangled Notes Plus</Header>
         <p className='my-12 text-whitish'>
           To unlock Untangled Notes Plus, select a subscription tier.
         </p>
