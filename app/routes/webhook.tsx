@@ -1,7 +1,7 @@
-import { LoaderFunctionArgs } from '@remix-run/node'
+import { ActionFunctionArgs } from '@remix-run/node'
 import { handleStripeWebhook } from '~/utils/stripe.server'
 
-export const action = async ({ request }: LoaderFunctionArgs) => {
+export const action = async ({ request }: ActionFunctionArgs) => {
   try {
     const response = new Response()
     const result = await handleStripeWebhook(request, response)

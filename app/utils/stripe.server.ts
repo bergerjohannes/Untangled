@@ -148,3 +148,15 @@ export const handleStripeWebhook = async (request: Request, response: Response) 
     }
   }
 }
+
+export const createBillingPortal = async (stripeCustomerId: string) => {
+  try {
+    const session = await stripe.billingPortal.sessions.create({
+      customer: stripeCustomerId,
+      return_url: 'http://localhost:3000/profile',
+    })
+    return session
+  } catch (error: any) {
+    return null
+  }
+}
