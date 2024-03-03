@@ -75,8 +75,8 @@ export default function Note({ title, text, timestamp, animate = true, deleteNot
       <div
         className={`w-11/12 max-w-2xl text-left lg:p-4 p-2 rounded-default ${
           isHovered
-            ? 'border-2 border-opacity-20 border-whitish'
-            : 'border-2 border-opacity-20 border-blackish'
+            ? 'border-2 border-opacity-10 border-whitish'
+            : 'border-2 border-opacity-10 border-blackish'
         }`}
       >
         <h1 className='lg:text-3xl md:text-2xl text-xl mx-auto font-bold leading-relaxed'>

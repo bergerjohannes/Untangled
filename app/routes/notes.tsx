@@ -94,10 +94,23 @@ export default function Notes() {
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null)
   const [noteTitleToDelete, setNoteTitleToDelete] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {
     setLocalNotes(notes)
   }, [notes])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const show = window.scrollY > 72
+      if (show !== isScrolled) setIsScrolled(show)
+    }
+
+    document.addEventListener('scroll', handleScroll)
+    return () => {
+      document.removeEventListener('scroll', handleScroll)
+    }
+  }, [isScrolled])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -166,6 +179,7 @@ export default function Notes() {
     <>
       <NavigationBar />
       <PageWrapper>
+        {isScrolled && <IndicatorTop />}
         <Header>Notes</Header>
         {localNotes
           .sort((a, b) => b.timestamp - a.timestamp)
@@ -193,5 +207,11 @@ export default function Notes() {
         </Modal>
       </PageWrapper>
     </>
+  )
+}
+
+const IndicatorTop = () => {
+  return (
+    <div className='fixed top-16 left-50% transform -translate-x-50% w-full max-w-2xl m-auto h-2 bg-blackish shadow-black shadow-lg'></div>
   )
 }
