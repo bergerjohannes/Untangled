@@ -4,12 +4,13 @@ import supabaseClient from '~/utils/supabase.server'
 import { useOutletContext } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import NavigationBar from '~/components/navigationBar'
-import Button from '~/components/prominentButton'
-
+import ProminentButton from '~/components/prominentButton'
+import { ensureStripeCustomer, hasOrHadAnySubscription } from '~/utils/stripe.server'
 import type { SupabaseOutletContext } from '~/root'
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
 import PageWrapper from '~/components/pageWrapper'
 import Header from '~/components/header'
+import SimpleButton from '~/components/simpleButton'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const response = new Response()
@@ -24,13 +25,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return redirect('/signup')
   }
 
+  const isOrWasSubscriber = await hasOrHadAnySubscription(userId)
+
   const { data: profile } = await supabase.from('profiles').select().limit(1)
 
-  return json({ profile: profile ? profile[0] : null }, { headers: response.headers })
+  return json(
+    { profile: profile ? profile[0] : null, showBillingPortal: isOrWasSubscriber },
+    { headers: response.headers }
+  )
 }
 
 export default function Profile() {
-  const { profile } = useLoaderData<typeof loader>()
+  const { profile, showBillingPortal } = useLoaderData<typeof loader>()
   const { supabase } = useOutletContext<SupabaseOutletContext>()
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
@@ -71,8 +77,24 @@ export default function Profile() {
       <NavigationBar />
       <PageWrapper>
         <Header>Profile</Header>
-        {user && <p className='mb-16'>You are logged in as {user.email}</p>}
-        <Button onClick={() => logOut()}>Log out</Button>
+        {user && (
+          <p className='mb-16'>
+            You are logged in as <span className='underline underline-offset-2'>{user.email}</span>
+          </p>
+        )}
+        {showBillingPortal && (
+          <Link to='/billing'>
+            <ProminentButton>Manage billing</ProminentButton>
+          </Link>
+        )}
+        {!showBillingPortal && (
+          <Link to='/subscribe'>
+            <ProminentButton>Subscribe</ProminentButton>
+          </Link>
+        )}
+        <div className='mt-16'>
+          <SimpleButton onClick={() => logOut()}>Log out</SimpleButton>
+        </div>
       </PageWrapper>
     </>
   )

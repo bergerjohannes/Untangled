@@ -36,6 +36,17 @@ export const ensureStripeCustomer = async (
   }
 }
 
+export const hasOrHadAnySubscription = async (userId: string | undefined) => {
+  if (!userId) {
+    throw new Error('User ID not provided')
+  }
+  const user = await getUserProfile(userId)
+  if (!user.stripe_subscription_id) {
+    return false
+  }
+  return true
+}
+
 export const hasActiveSubscription = async (stripeCustomerId: string | undefined) => {
   if (!stripeCustomerId) {
     throw new Error('Stripe customer ID not provided')
