@@ -73,7 +73,7 @@ export default function Note({ title, text, timestamp, animate = true, deleteNot
   return (
     <div className={`flex flex-col items-center justify-start text-center w-full mb-12 lg:mb-8`}>
       <div
-        className={`w-11/12 max-w-2xl text-left lg:p-4 p-2 rounded-xl ${
+        className={`w-11/12 max-w-2xl text-left lg:p-4 p-2 rounded-default ${
           isHovered
             ? 'border-2 border-opacity-20 border-whitish'
             : 'border-2 border-opacity-20 border-blackish'

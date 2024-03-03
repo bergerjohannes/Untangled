@@ -8,6 +8,9 @@ export default {
         blackish: '#121418',
         whitish: '#F5F5F5',
       },
+      borderRadius: {
+        default: '0.5rem',
+      },
       height: {
         '84': '21rem',
         '128': '32rem',

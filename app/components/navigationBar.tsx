@@ -7,7 +7,12 @@ import { useEffect, useState } from 'react'
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
 import SimpleButton from './simpleButton'
 
-const NavigationBar = ({ withoutMenu = false }) => {
+enum Theme {
+  Dark = 'dark',
+  Light = 'light',
+}
+
+const NavigationBar = ({ withoutMenu = false, theme = Theme.Dark }) => {
   const { supabase } = useOutletContext<SupabaseOutletContext>()
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
@@ -23,7 +28,12 @@ const NavigationBar = ({ withoutMenu = false }) => {
 
   const renderLogo = () => (
     <li>
-      <Link to='/' className='flex items-center justify-center mr-4'>
+      <Link
+        to='/'
+        className={`flex items-center justify-center mr-4 ${
+          theme === Theme.Light ? 'text-whitish' : 'text-blackish'
+        }`}
+      >
         <SimpleLogo />
       </Link>
     </li>
@@ -31,7 +41,10 @@ const NavigationBar = ({ withoutMenu = false }) => {
 
   if (loading) {
     return (
-      <div className='w-full p-4' style={{ backdropFilter: 'blur(10px)' }}>
+      <div
+        className={`w-full p-4 ${theme === Theme.Light ? 'bg-whitish' : 'bg-blackish'}`}
+        style={{ backdropFilter: 'blur(10px)' }}
+      >
         <ul className='flex justify-start items-center'>{renderLogo()}</ul>
       </div>
     )
@@ -39,7 +52,9 @@ const NavigationBar = ({ withoutMenu = false }) => {
 
   return (
     <nav
-      className='flex justify-start sticky top-0 z-50 w-full'
+      className={`flex justify-start sticky top-0 z-50 w-full ${
+        theme === Theme.Light ? 'bg-whitish' : 'bg-ish'
+      }`}
       style={{
         background: 'linear-gradient(transparent, rgba(18, 20, 24, 1))',
       }}

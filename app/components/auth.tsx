@@ -3,7 +3,7 @@ import { useOutletContext, useNavigate } from '@remix-run/react'
 import { useState } from 'react'
 
 import type { SupabaseOutletContext } from '~/root'
-import { LogoWithText } from './logo'
+import { LogoWithText, Theme } from './logo'
 import SimpleButton from './simpleButton'
 import ProminentButton from './prominentButton'
 
@@ -71,12 +71,17 @@ const Auth = ({ type, location }: AuthProps) => {
 
   return (
     <div className='flex flex-col md:flex-row m-auto w-full h-full absolute top-0 left-0'>
-      <div className='md:w-1/2 bg-whitish text-blackish flex flex-col justify-center items-center'>
+      <div className='md:w-1/2 pt-8 md:pt-0 md:bg-whitish flex flex-col justify-center items-center'>
         <Link to='/'>
-          <LogoWithText />
+          <div className='hidden md:block'>
+            <LogoWithText theme={Theme.Dark} />
+          </div>
+          <div className='block md:hidden'>
+            <LogoWithText theme={Theme.Light} />
+          </div>
         </Link>
       </div>
-      <div className='md:w-1/2 bg-blackish text-whitish flex flex-col items-center justify-center'>
+      <div className='md:w-1/2 h-full bg-blackish text-whitish flex flex-col items-center justify-center'>
         <h2 className='text-3xl font-bold mb-4'>{title}</h2>
         <div className='grid grid-rows-3 gap-2'>
           <div className='grid grid-rows-2 grid-cols-3 gap-2'>
@@ -85,14 +90,14 @@ const Auth = ({ type, location }: AuthProps) => {
               value={email}
               type='email'
               onChange={(e) => setEmail(e.target.value)}
-              className='rounded-3xl px-2 py-1 ml-2 focus:outline-none w-full col-span-2 text-blackish'
+              className='rounded-default px-2 py-1 ml-2 focus:outline-none w-full col-span-2 text-blackish'
             />
             <label className='col-span-1'>Password</label>
             <input
               value={password}
               type='password'
               onChange={(e) => setPassword(e.target.value)}
-              className='rounded-3xl px-2 py-1 ml-2 focus:outline-none w-full col-span-2 text-blackish'
+              className='rounded-default px-2 py-1 ml-2 focus:outline-none w-full col-span-2 text-blackish'
             />
           </div>
           <div className='flex w-full h-fit'>

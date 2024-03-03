@@ -4,7 +4,7 @@ interface ProminentButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElem
 
 const ProminentButton = ({ children, ...props }: ProminentButtonProps) => (
   <button
-    className='bg-blackish border-2 border-whitish py-2 px-8 rounded-3xl cursor-pointer hover:bg-whitish hover:text-blackish transition-colors duration-200'
+    className='bg-blackish border-2 border-whitish py-2 px-8 rounded-default cursor-pointer hover:bg-whitish hover:text-blackish transition-colors duration-200'
     {...props}
   >
     {children}
