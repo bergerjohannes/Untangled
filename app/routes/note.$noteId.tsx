@@ -1,4 +1,4 @@
-import { useLocation, useParams, useLoaderData } from '@remix-run/react'
+import { useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { LoaderFunctionArgs, ActionFunctionArgs, json, redirect } from '@remix-run/node'
 import { useFetcher, useNavigate } from '@remix-run/react'
@@ -6,22 +6,12 @@ import NavigationBar from '~/components/navigationBar'
 import NoteComponent from '~/components/noteComponent'
 import supabaseClient from '~/utils/supabase.server'
 
-import { Session, User } from '@supabase/gotrue-js/src/lib/types'
-
 import { Tables } from 'types/supabase'
+import invariant from 'tiny-invariant'
 type Note = Tables<'notes'>
 
 enum Intent {
   Delete = 'Delete',
-}
-
-interface CustomLocationState extends Location {
-  id: string
-  owner: string
-  text: string
-  title: string
-  transcript: string
-  timestamp: string
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -54,36 +44,58 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 }
 
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
+  const response = new Response()
+  const supabase = supabaseClient({ request, response })
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  const userId = session?.user?.id ?? null
+  if (!userId) {
+    return redirect('/signup')
+  }
+
+  invariant(params.noteId, 'Expected params.noteId!')
+  const noteId = params.noteId
+
+  if (noteId) {
+    const { data, error } = await supabase.from('notes').select('*').eq('id', noteId).single()
+
+    if (error) {
+      console.error('Error loading note:', error)
+      return json({ error: error.message }, { status: 500 })
+    }
+
+    return json({ ...data, timestamp: new Date(data.timestamp).getTime() })
+  }
+
+  return null
+}
+
 export default function Note() {
   const [note, setNote] = useState<Note | null>(null)
   const navigate = useNavigate()
 
-  const location = useLocation()
-  const state = location.state as CustomLocationState
-  const { id, owner, text, title, transcript, timestamp } = state || {}
+  const loaderData = useLoaderData<Note>()
 
   useEffect(() => {
-    setNote({
-      id: id,
-      owner: owner,
-      text: text,
-      title: title,
-      transcript: transcript,
-      timestamp: new Date(timestamp).getTime().toString(),
-    })
-  }, [id, owner, text, title, transcript, timestamp])
+    if (loaderData) {
+      setNote(loaderData)
+    }
+  }, [loaderData])
 
   const fetcher = useFetcher()
 
   const handleDelete = async () => {
-    console.log('note', note)
     if (note) {
       await fetcher.submit(
         {
           id: note.id,
           intent: Intent.Delete,
         },
-        { method: 'post', action: '/result' }
+        { method: 'post', action: `/note/${note.id}` }
       )
       navigate('/')
     }

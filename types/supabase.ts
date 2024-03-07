@@ -41,6 +41,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_notes_transcript_fkey"
+            columns: ["transcript"]
+            isOneToOne: false
+            referencedRelation: "transcripts"
+            referencedColumns: ["id"]
           }
         ]
       }
@@ -74,6 +81,35 @@ export type Database = {
             foreignKeyName: "profiles_id_fkey"
             columns: ["id"]
             isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      transcripts: {
+        Row: {
+          content: string
+          id: string
+          owner: string
+          timestamp: string
+        }
+        Insert: {
+          content: string
+          id?: string
+          owner?: string
+          timestamp?: string
+        }
+        Update: {
+          content?: string
+          id?: string
+          owner?: string
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_transcriptions_owner_fkey"
+            columns: ["owner"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           }

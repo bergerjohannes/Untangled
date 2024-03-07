@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
-type NoteProps = {
+type NoteComponentProps = {
   title: string
   text: string
   timestamp: number
@@ -10,7 +10,7 @@ type NoteProps = {
   deleteNote: () => void
 }
 
-export default function Note({ title, text, timestamp, animate = true, deleteNote }: NoteProps) {
+export default function NoteComponent({ title, text, timestamp, animate = true, deleteNote }: NoteComponentProps) {
   const textRef = useRef<HTMLDivElement>(null)
   const [textData, setTextData] = useState<string | null>(text)
   const [titleData, setTitleData] = useState<string | null>(title)

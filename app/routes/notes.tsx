@@ -5,7 +5,7 @@ import { useOutletContext, useFetcher } from '@remix-run/react'
 import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import NavigationBar from '~/components/navigationBar'
-import Note from '~/components/note'
+import Note from '~/components/noteComponent'
 import EmptyState from '~/components/EmptyState'
 import Header from '~/components/header'
 import Modal, { ModalRef } from '~/components/modal'
@@ -15,12 +15,8 @@ import { Session, User } from '@supabase/gotrue-js/src/lib/types'
 import PageWrapper from '~/components/pageWrapper'
 import Button from '~/components/prominentButton'
 
-type Note = {
-  id: string
-  title: string
-  text: string
-  timestamp: number
-}
+import { Tables } from 'types/supabase'
+type Note = Tables<'notes'>
 
 enum Intent {
   Delete = 'Delete',
@@ -30,22 +26,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const response = new Response()
   const supabase = supabaseClient({ request, response })
 
-  const formData = await request.formData()
-  const id = formData.get('id') as string
-  const intent = Intent[formData.get('intent') as keyof typeof Intent]
-
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
   const userId = session?.user?.id ?? null
-  if (userId === null) {
-    console.error('Error: User ID is null')
-    return json({ error: 'User ID is null' }, { status: 500 })
+  if (!userId) {
+    return redirect('/signup')
   }
 
+  const formData = await request.formData()
+  const id = formData.get('id') as string
+  const intent = Intent[formData.get('intent') as keyof typeof Intent]
+
   if (intent === Intent.Delete) {
-    const { data, error } = await supabase.from('notes').delete().match({ owner: userId, id })
+    const { data, error } = await supabase.from('notes').delete().eq('id', id)
 
     if (error) {
       console.error('Error deleting note:', error)
@@ -182,13 +177,13 @@ export default function Notes() {
         {isScrolled && <IndicatorTop />}
         <Header>Notes</Header>
         {localNotes
-          .sort((a, b) => b.timestamp - a.timestamp)
+          .sort((a, b) => parseInt(b.timestamp) - parseInt(a.timestamp))
           .map((note) => (
             <Note
               key={note.id}
               title={note.title}
               text={note.text}
-              timestamp={note.timestamp}
+              timestamp={parseInt(note.timestamp)}
               animate={false}
               deleteNote={() => handleDelete(note.id, note.title)}
             />

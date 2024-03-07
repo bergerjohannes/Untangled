@@ -7,6 +7,7 @@ import Illustration from '~/components/illustration'
 import Header from '../components/header'
 import PageWrapper from '~/components/pageWrapper'
 import RecordingBubble, { RecordingState } from '~/components/recordingBubble'
+import supabaseClient from '~/utils/supabase.server'
 
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
 import type { SupabaseOutletContext } from '~/root'
@@ -28,6 +29,9 @@ enum Intent {
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData()
   const intent = formData.get('intent') as Intent
+  const userId = formData.get('userId') as string | null
+  const response = new Response()
+  const supabase = supabaseClient({ request, response })
 
   switch (intent) {
     case Intent.Transcribe: {
@@ -53,10 +57,25 @@ export const action: ActionFunction = async ({ request }) => {
                 return new Response('Error creating the transcript', { status: 400 })
               }
 
+              const { data: newTranscript, error } = await supabase
+                .from('transcripts')
+                .insert({
+                  content: transcript.text,
+                  timestamp: timestamp,
+                  owner: userId,
+                })
+                .select('*')
+
+              if (error) {
+                console.error(error)
+                return json({ error: error.message }, { status: 500 })
+              }
+
               return json(
                 {
                   transcript: transcript.text,
                   timestamp: timestamp,
+                  transcriptId: newTranscript[0].id,
                 },
                 { status: 200 }
               )
@@ -74,6 +93,7 @@ export const action: ActionFunction = async ({ request }) => {
       try {
         const transcript = formData.get('transcript') as string
         const timestamp = formData.get('timestamp') as string
+        const transcriptId = formData.get('transcriptId') as string
 
         const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
@@ -99,7 +119,26 @@ export const action: ActionFunction = async ({ request }) => {
           const parsedData = JSON.parse(data)
           parsedData.timestamp = timestamp
           parsedData.transcript = transcript
-          return json(parsedData, { status: 200 })
+          parsedData.owner = userId
+
+          const { data: newRephrase, error } = await supabase
+            .from('notes')
+            .insert({
+              title: parsedData.title,
+              text: parsedData.text,
+              transcript: transcriptId,
+              timestamp: timestamp,
+              owner: userId!, // Should be safe here since we only allow this intent if the user is logged in
+            })
+            .select('*')
+            .single()
+
+          if (error) {
+            console.error(error)
+            return json({ error: error.message }, { status: 500 })
+          }
+
+          return json(newRephrase, { status: 200 })
         } else {
           return new Response('Response data is null', { status: 500 })
         }
@@ -123,10 +162,12 @@ enum State {
 }
 
 interface FetcherData {
+  id?: string
   title?: string
   text?: string
   transcript: string
   timestamp: string
+  transcriptId: string
 }
 
 export default function Index() {
@@ -158,6 +199,11 @@ export default function Index() {
   }, [recordingBlob])
 
   const handleRecord = () => {
+    if (user?.id === null) {
+      navigate('/signup')
+      return
+    }
+
     if (state === State.Initial) {
       startRecording()
       setState(State.Recording)
@@ -181,10 +227,12 @@ export default function Index() {
     ) {
       navigate('/result', {
         state: {
-          textData: (fetcher.data as FetcherData).text,
-          titleData: (fetcher.data as FetcherData).title,
-          transcriptData: (fetcher.data as FetcherData).transcript,
-          timestampData: (fetcher.data as FetcherData).timestamp,
+          id: (fetcher.data as FetcherData).id,
+          owner: user?.id,
+          text: (fetcher.data as FetcherData).text,
+          title: (fetcher.data as FetcherData).title,
+          transcript: (fetcher.data as FetcherData).transcript,
+          timestamp: (fetcher.data as FetcherData).timestamp,
         },
       })
     }
@@ -203,9 +251,17 @@ export default function Index() {
       (fetcher.data as FetcherData).transcript
     ) {
       try {
+        const userId = user?.id
+        if (!userId) {
+          console.error('User ID is undefined')
+          return
+        }
+
         const data = {
           transcript: (fetcher.data as FetcherData).transcript,
           timestamp: (fetcher.data as FetcherData).timestamp,
+          transcriptId: (fetcher.data as FetcherData).transcriptId,
+          userId: user?.id,
           intent: Intent.Rephrase,
         }
 
@@ -243,7 +299,13 @@ export default function Index() {
           return
         }
         try {
-          const data = { audio: base64data, intent: Intent.Transcribe }
+          const userId = user?.id
+          if (!userId) {
+            console.error('User ID is undefined')
+            return
+          }
+
+          const data = { audio: base64data, userId: userId, intent: Intent.Transcribe }
           fetcher.submit(data, { method: 'post', action: '/?index' })
         } catch (error) {
           console.error('Error submitting the recorded audio: ', error)
