@@ -1,8 +1,6 @@
 import { LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import supabaseClient from '~/utils/supabase.server'
-import NavigationBar from '~/components/navigationBar'
-import PageWrapper from '~/components/pageWrapper'
 import Header from '~/components/header'
 import ProminentButton from '~/components/prominentButton'
 import {
@@ -74,49 +72,43 @@ const PaymentPage = () => {
   if (isSubscriber) {
     return (
       <>
-        <NavigationBar />
-        <PageWrapper>
-          <Header>You are subscribed</Header>
-          <p className='my-12 text-whitish'>You are already subscribed to Untangled Notes Plus.</p>
-        </PageWrapper>
+        <Header>You are subscribed</Header>
+        <p className='my-12 text-whitish'>You are already subscribed to Untangled Notes Plus.</p>
       </>
     )
   }
 
   return (
     <>
-      <NavigationBar />
-      <PageWrapper>
-        <Header>Subscribe to Untangled Notes Plus</Header>
-        <p className='my-12 text-whitish'>
-          To unlock Untangled Notes Plus, select a subscription tier.
-        </p>
-        <div className='flex w-11/12 max-2xl m-auto mt-8'>
-          {productsWithPrices.map(({ product, prices }) => (
-            <div key={product.id} className='w-full'>
-              <h2 className='text-xl mb-8'>{product.name}</h2>
-              <p className='card-description'>{product.description}</p>
-              <div className='flex justify-around'>
-                {prices.map((price: Price) => (
-                  <div key={price.id}>
-                    <p>{price.nickname}</p>
-                    <p>
-                      {price.currency.toUpperCase()} {price.unit_amount / 100}
-                    </p>
-                    <ProminentButton
-                      onClick={() => {
-                        checkout(price.id)
-                      }}
-                    >
-                      Buy Now
-                    </ProminentButton>
-                  </div>
-                ))}
-              </div>
+      <Header>Subscribe to Untangled Notes Plus</Header>
+      <p className='my-12 text-whitish'>
+        To unlock Untangled Notes Plus, select a subscription tier.
+      </p>
+      <div className='flex w-11/12 max-2xl m-auto mt-8'>
+        {productsWithPrices.map(({ product, prices }) => (
+          <div key={product.id} className='w-full'>
+            <h2 className='text-xl mb-8'>{product.name}</h2>
+            <p className='card-description'>{product.description}</p>
+            <div className='flex justify-around'>
+              {prices.map((price: Price) => (
+                <div key={price.id}>
+                  <p>{price.nickname}</p>
+                  <p>
+                    {price.currency.toUpperCase()} {price.unit_amount / 100}
+                  </p>
+                  <ProminentButton
+                    onClick={() => {
+                      checkout(price.id)
+                    }}
+                  >
+                    Buy Now
+                  </ProminentButton>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </PageWrapper>
+          </div>
+        ))}
+      </div>
     </>
   )
 }

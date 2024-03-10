@@ -70,44 +70,37 @@ const Auth = ({ type, location }: AuthProps) => {
   }
 
   return (
-    <div className='flex flex-col md:flex-row m-auto w-full h-full absolute top-0 left-0'>
-      <div className='md:w-1/2 pt-8 md:pt-0 md:bg-whitish flex flex-col justify-center items-center'>
+    <div className='flex flex-col m-auto justify-center items-center w-full h-full mt-8 md:mt-40 text-whitish'>
+      <div className='flex flex-col justify-center items-center'>
         <Link to='/'>
-          <div className='hidden md:block'>
-            <LogoWithText theme={Theme.Dark} />
-          </div>
-          <div className='block md:hidden'>
-            <LogoWithText theme={Theme.Light} />
-          </div>
+          <LogoWithText theme={Theme.Light} />
         </Link>
       </div>
-      <div className='md:w-1/2 h-full bg-blackish text-whitish flex flex-col items-center justify-center'>
-        <h2 className='text-3xl font-bold mb-4'>{title}</h2>
-        <div className='grid grid-rows-3 gap-2'>
-          <div className='grid grid-rows-2 grid-cols-3 gap-2'>
-            <label className='col-span-1'>Email</label>
-            <input
-              value={email}
-              type='email'
-              onChange={(e) => setEmail(e.target.value)}
-              className='rounded-default px-2 py-1 ml-2 focus:outline-none w-full col-span-2 text-blackish'
-            />
-            <label className='col-span-1'>Password</label>
-            <input
-              value={password}
-              type='password'
-              onChange={(e) => setPassword(e.target.value)}
-              className='rounded-default px-2 py-1 ml-2 focus:outline-none w-full col-span-2 text-blackish'
-            />
-          </div>
-          <div className='flex w-full h-fit'>
-            <ProminentButton onClick={handleAction}>{buttonText}</ProminentButton>
-          </div>
+      <h2 className='text-3xl font-bold mb-4 mt-8 md:mt-40'>{title}</h2>
+      <div className='grid grid-rows-3 gap-2'>
+        <div className='grid grid-rows-2 grid-cols-3 gap-2'>
+          <label className='col-span-1'>Email</label>
+          <input
+            value={email}
+            type='email'
+            onChange={(e) => setEmail(e.target.value)}
+            className='rounded-default px-2 py-1 ml-2 focus:outline-none w-full col-span-2 text-blackish'
+          />
+          <label className='col-span-1'>Password</label>
+          <input
+            value={password}
+            type='password'
+            onChange={(e) => setPassword(e.target.value)}
+            className='rounded-default px-2 py-1 ml-2 focus:outline-none w-full col-span-2 text-blackish'
+          />
         </div>
-        <Link to={linkTo}>
-          <SimpleButton>{linkText}</SimpleButton>
-        </Link>
+        <div className='flex w-full h-fit'>
+          <ProminentButton onClick={handleAction}>{buttonText}</ProminentButton>
+        </div>
       </div>
+      <Link to={linkTo}>
+        <SimpleButton>{linkText}</SimpleButton>
+      </Link>
     </div>
   )
 }

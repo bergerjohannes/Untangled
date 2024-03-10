@@ -3,12 +3,10 @@ import { Link, useLoaderData, useLocation, useNavigate } from '@remix-run/react'
 import supabaseClient from '~/utils/supabase.server'
 import { useOutletContext } from '@remix-run/react'
 import { useEffect, useState } from 'react'
-import NavigationBar from '~/components/navigationBar'
 import ProminentButton from '~/components/prominentButton'
 import { hasOrHadAnySubscription } from '~/utils/stripe.server'
 import type { SupabaseOutletContext } from '~/root'
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
-import PageWrapper from '~/components/pageWrapper'
 import Header from '~/components/header'
 import SimpleButton from '~/components/simpleButton'
 
@@ -64,38 +62,32 @@ export default function Profile() {
   if (loading) {
     return (
       <>
-        <NavigationBar />
-        <PageWrapper>
-          <Header>Profile</Header>
-        </PageWrapper>
+        <Header>Profile</Header>
       </>
     )
   }
 
   return (
     <>
-      <NavigationBar />
-      <PageWrapper>
-        <Header>Profile</Header>
-        {user && (
-          <p className='mb-16'>
-            You are logged in as <span className='underline underline-offset-2'>{user.email}</span>
-          </p>
-        )}
-        {showBillingPortal && (
-          <Link to='/billing'>
-            <ProminentButton>Manage billing</ProminentButton>
-          </Link>
-        )}
-        {!showBillingPortal && (
-          <Link to='/subscribe'>
-            <ProminentButton>Subscribe</ProminentButton>
-          </Link>
-        )}
-        <div className='mt-16'>
-          <SimpleButton onClick={() => logOut()}>Log out</SimpleButton>
-        </div>
-      </PageWrapper>
+      <Header>Profile</Header>
+      {user && (
+        <p className='mb-16'>
+          You are logged in as <span className='underline underline-offset-2'>{user.email}</span>
+        </p>
+      )}
+      {showBillingPortal && (
+        <Link to='/billing'>
+          <ProminentButton>Manage billing</ProminentButton>
+        </Link>
+      )}
+      {!showBillingPortal && (
+        <Link to='/subscribe'>
+          <ProminentButton>Subscribe</ProminentButton>
+        </Link>
+      )}
+      <div className='mt-16'>
+        <SimpleButton onClick={() => logOut()}>Log out</SimpleButton>
+      </div>
     </>
   )
 }

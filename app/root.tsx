@@ -13,21 +13,22 @@ import { createBrowserClient, SupabaseClient } from '@supabase/auth-helpers-remi
 import { useEffect, useState } from 'react'
 import stylesheet from '~/tailwind.css'
 import additionalStyles from '~/style.css'
+import { Session, User } from '@supabase/gotrue-js/src/lib/types'
+import type { Database } from 'types/supabase'
+import createSupabaseClient from '~/utils/supabase.server'
+type TypedSupabaseClient = SupabaseClient<Database>
+import { Link } from '@remix-run/react'
+import { SimpleLogo } from 'app/components/logo'
+import SimpleButton from 'app/components/simpleButton'
+export type SupabaseOutletContext = {
+  supabase: TypedSupabaseClient
+}
 
 export const links: LinksFunction = () => {
   return [
     { rel: 'stylesheet', href: stylesheet },
     { rel: 'stylesheet', href: additionalStyles },
   ]
-}
-import createSupabaseClient from '~/utils/supabase.server'
-
-import type { Database } from 'supabase_types'
-
-type TypedSupabaseClient = SupabaseClient<Database>
-
-export type SupabaseOutletContext = {
-  supabase: TypedSupabaseClient
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -80,11 +81,98 @@ export default function App() {
         <Links />
       </head>
       <body className='bg-blackish text-whitish'>
-        <Outlet context={{ supabase }} />
+        <NavigationBar supabase={supabase} />
+        <div className='w-full flex flex-col items-center justify-start text-center'>
+          <Outlet context={{ supabase }} />
+        </div>
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
       </body>
     </html>
+  )
+}
+
+type NavigationBarProps = {
+  supabase: SupabaseClient<Database>
+  withoutMenu?: boolean
+}
+
+function NavigationBar({ supabase, withoutMenu }: NavigationBarProps) {
+  const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session)
+      setUser(data.session?.user ?? null)
+      setLoading(false)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null)
+      setSession(session)
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  const renderLogo = () => (
+    <li>
+      <Link to='/' className='flex items-center justify-center mr-4 text-whitish'>
+        <SimpleLogo />
+      </Link>
+    </li>
+  )
+
+  if (loading) {
+    return (
+      <div className='w-full p-4 bg-blackish' style={{ backdropFilter: 'blur(10px)' }}>
+        <ul className='flex justify-start items-center'>{renderLogo()}</ul>
+      </div>
+    )
+  }
+
+  return (
+    <nav
+      className='flex justify-start sticky top-0 z-50 w-full bg-blackish'
+      style={{
+        background: 'linear-gradient(transparent, rgba(18, 20, 24, 1))',
+      }}
+    >
+      <div className='w-full p-4 bg-blackish' style={{ backdropFilter: 'blur(10px)' }}>
+        <ul className='flex justify-start items-center'>
+          {renderLogo()}
+          {!user && (
+            <li className='flex space-x-4'>
+              <Link to='/'>
+                <SimpleButton>Record</SimpleButton>
+              </Link>
+              <Link to='/signup'>
+                <SimpleButton>Sign Up</SimpleButton>
+              </Link>
+            </li>
+          )}
+          {user && !withoutMenu && (
+            <li className='flex space-x-4'>
+              <Link to='/'>
+                <SimpleButton>Record</SimpleButton>
+              </Link>
+              <Link to='/notes'>
+                <SimpleButton>Notes</SimpleButton>
+              </Link>
+              <Link to='/profile'>
+                <SimpleButton>Profile</SimpleButton>
+              </Link>
+            </li>
+          )}
+        </ul>
+      </div>
+    </nav>
   )
 }

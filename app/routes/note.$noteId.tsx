@@ -2,7 +2,6 @@ import { useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { LoaderFunctionArgs, ActionFunctionArgs, json, redirect } from '@remix-run/node'
 import { useFetcher, useNavigate } from '@remix-run/react'
-import NavigationBar from '~/components/navigationBar'
 import NoteComponent from '~/components/noteComponent'
 import supabaseClient from '~/utils/supabase.server'
 
@@ -76,6 +75,7 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 
 export default function Note() {
   const [note, setNote] = useState<Note | null>(null)
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   const loaderData = useLoaderData<Note>()
@@ -83,6 +83,7 @@ export default function Note() {
   useEffect(() => {
     if (loaderData) {
       setNote(loaderData)
+      setLoading(false)
     }
   }, [loaderData])
 
@@ -101,10 +102,17 @@ export default function Note() {
     }
   }
 
+  if (loading) {
+    return (
+      <>
+        <div className='flex flex-col items-center justify-start text-center'></div>
+      </>
+    )
+  }
+
   if (note) {
     return (
       <>
-        <NavigationBar />
         <NoteComponent
           title={note.title}
           text={note.text}
@@ -116,7 +124,6 @@ export default function Note() {
   }
   return (
     <>
-      <NavigationBar />
       <div className='flex flex-col items-center justify-start text-center'>
         <p className='md:text-lg mx-auto mt-4'>No data available</p>
       </div>

@@ -1,12 +1,9 @@
-import { useLocation, useParams, useLoaderData } from '@remix-run/react'
+import { useLocation } from '@remix-run/react'
 import { useEffect, useState } from 'react'
-import { LoaderFunctionArgs, ActionFunctionArgs, json, redirect } from '@remix-run/node'
+import { ActionFunctionArgs, json, redirect } from '@remix-run/node'
 import { useFetcher, useNavigate } from '@remix-run/react'
-import NavigationBar from '~/components/navigationBar'
 import NoteComponent from '~/components/noteComponent'
 import supabaseClient from '~/utils/supabase.server'
-
-import { Session, User } from '@supabase/gotrue-js/src/lib/types'
 
 import { Tables } from 'types/supabase'
 type Note = Tables<'notes'>
@@ -92,7 +89,6 @@ export default function Note() {
   if (note) {
     return (
       <>
-        <NavigationBar />
         <NoteComponent
           title={note.title}
           text={note.text}
@@ -104,7 +100,6 @@ export default function Note() {
   }
   return (
     <>
-      <NavigationBar />
       <div className='flex flex-col items-center justify-start text-center'>
         <p className='md:text-lg mx-auto mt-4'>No data available</p>
       </div>

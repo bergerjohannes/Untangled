@@ -4,7 +4,6 @@ import supabaseClient from '~/utils/supabase.server'
 import { useOutletContext, useFetcher } from '@remix-run/react'
 import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import NavigationBar from '~/components/navigationBar'
 import Note from '~/components/noteComponent'
 import EmptyState from '~/components/EmptyState'
 import Header from '~/components/header'
@@ -12,7 +11,6 @@ import Modal, { ModalRef } from '~/components/modal'
 
 import type { SupabaseOutletContext } from '~/root'
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
-import PageWrapper from '~/components/pageWrapper'
 import Button from '~/components/prominentButton'
 
 import { Tables } from 'types/supabase'
@@ -146,10 +144,7 @@ export default function Notes() {
   if (loading) {
     return (
       <>
-        <NavigationBar />
-        <PageWrapper>
-          <Header>Notes</Header>
-        </PageWrapper>
+        <Header>Notes</Header>
       </>
     )
   }
@@ -157,50 +152,44 @@ export default function Notes() {
   if (notes.length === 0) {
     return (
       <>
-        <NavigationBar />
-        <PageWrapper>
-          <Header>Notes</Header>
-          <EmptyState />
-          <p className='my-12 text-whitish'>Nothing here yet!</p>
-          <Link to='/'>
-            <Button>Record your first note</Button>
-          </Link>
-        </PageWrapper>
+        <Header>Notes</Header>
+        <EmptyState />
+        <p className='my-12 text-whitish'>Nothing here yet!</p>
+        <Link to='/'>
+          <Button>Record your first note</Button>
+        </Link>
       </>
     )
   }
 
   return (
     <>
-      <NavigationBar />
-      <PageWrapper>
-        {isScrolled && <IndicatorTop />}
-        <Header>Notes</Header>
-        {localNotes
-          .sort((a, b) => parseInt(b.timestamp) - parseInt(a.timestamp))
-          .map((note) => (
-            <Note
-              key={note.id}
-              title={note.title}
-              text={note.text}
-              timestamp={parseInt(note.timestamp)}
-              animate={false}
-              deleteNote={() => handleDelete(note.id, note.title)}
-            />
-          ))}
-        <Modal
-          ref={modalRef}
-          headerText='Confirm Delete'
-          confirmButtonText='Delete'
-          confirmAction={confirmDelete}
-          cancelButtonText='Cancel'
-          cancelAction={cancelDelete}
-        >
-          <p>
-            Are you sure you want to delete "<span className='italic'>{noteTitleToDelete}</span>"?
-          </p>
-        </Modal>
-      </PageWrapper>
+      {isScrolled && <IndicatorTop />}
+      <Header>Notes</Header>
+      {localNotes
+        .sort((a, b) => parseInt(b.timestamp) - parseInt(a.timestamp))
+        .map((note) => (
+          <Note
+            key={note.id}
+            title={note.title}
+            text={note.text}
+            timestamp={parseInt(note.timestamp)}
+            animate={false}
+            deleteNote={() => handleDelete(note.id, note.title)}
+          />
+        ))}
+      <Modal
+        ref={modalRef}
+        headerText='Confirm Delete'
+        confirmButtonText='Delete'
+        confirmAction={confirmDelete}
+        cancelButtonText='Cancel'
+        cancelAction={cancelDelete}
+      >
+        <p>
+          Are you sure you want to delete "<span className='italic'>{noteTitleToDelete}</span>"?
+        </p>
+      </Modal>
     </>
   )
 }

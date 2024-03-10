@@ -5,14 +5,12 @@ import { OpenAI } from 'openai'
 import { useAudioRecorder } from 'react-audio-voice-recorder'
 import Illustration from '~/components/illustration'
 import Header from '../components/header'
-import PageWrapper from '~/components/pageWrapper'
 import RecordingBubble, { RecordingState } from '~/components/recordingBubble'
 import supabaseClient from '~/utils/supabase.server'
 
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
 import type { SupabaseOutletContext } from '~/root'
 import type { MetaFunction } from '@remix-run/node'
-import NavigationBar from '~/components/navigationBar'
 
 export const meta: MetaFunction = () => {
   return [
@@ -316,56 +314,49 @@ export default function Index() {
 
   return (
     <>
-      <NavigationBar />
+      {state === State.Initial && (
+        <>
+          <HeaderInitial />
+          <MicrophoneWrapper>
+            <RecordingBubble recordingState={RecordingState.Waiting} handleRecord={handleRecord} />
+            <Illustration />
+          </MicrophoneWrapper>
+        </>
+      )}
+      {state === State.Recording && !mediaRecorder && (
+        <>
+          <HeaderRecording />
+          <MicrophoneWrapper>
+            <RecordingBubble recordingState={RecordingState.Activating} />
+            <Illustration />
+          </MicrophoneWrapper>
+        </>
+      )}
 
-      <PageWrapper>
-        {state === State.Initial && (
-          <>
-            <HeaderInitial />
-            <MicrophoneWrapper>
-              <RecordingBubble
-                recordingState={RecordingState.Waiting}
-                handleRecord={handleRecord}
-              />
-              <Illustration />
-            </MicrophoneWrapper>
-          </>
-        )}
-        {state === State.Recording && !mediaRecorder && (
-          <>
-            <HeaderRecording />
-            <MicrophoneWrapper>
-              <RecordingBubble recordingState={RecordingState.Activating} />
-              <Illustration />
-            </MicrophoneWrapper>
-          </>
-        )}
+      {state === State.Recording && mediaRecorder && (
+        <>
+          <HeaderRecording />
+          <MicrophoneWrapper>
+            <RecordingBubble
+              recordingState={RecordingState.Active}
+              handleRecord={handleRecord}
+              mediaRecorder={mediaRecorder}
+            />
+            <Illustration />
+          </MicrophoneWrapper>
+        </>
+      )}
 
-        {state === State.Recording && mediaRecorder && (
-          <>
-            <HeaderRecording />
-            <MicrophoneWrapper>
-              <RecordingBubble
-                recordingState={RecordingState.Active}
-                handleRecord={handleRecord}
-                mediaRecorder={mediaRecorder}
-              />
-              <Illustration />
-            </MicrophoneWrapper>
-          </>
-        )}
+      {(state === State.LoadingTranscribing || state === State.LoadingRephrasing) && (
+        <>
+          <HeaderLoading state={state} />
+          <MicrophoneWrapper>
+            <RecordingBubble recordingState={RecordingState.Loading} />
+          </MicrophoneWrapper>
+        </>
+      )}
 
-        {(state === State.LoadingTranscribing || state === State.LoadingRephrasing) && (
-          <>
-            <HeaderLoading state={state} />
-            <MicrophoneWrapper>
-              <RecordingBubble recordingState={RecordingState.Loading} />
-            </MicrophoneWrapper>
-          </>
-        )}
-
-        {state === State.Result && <></>}
-      </PageWrapper>
+      {state === State.Result && <></>}
     </>
   )
 }
