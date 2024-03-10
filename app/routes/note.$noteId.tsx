@@ -1,4 +1,4 @@
-import { useLoaderData } from '@remix-run/react'
+import { Link, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { LoaderFunctionArgs, ActionFunctionArgs, json, redirect } from '@remix-run/node'
 import { useFetcher, useNavigate } from '@remix-run/react'
@@ -7,6 +7,8 @@ import supabaseClient from '~/utils/supabase.server'
 
 import { Tables } from 'types/supabase'
 import invariant from 'tiny-invariant'
+import Header from '~/components/header'
+import ProminentButton from '~/components/prominentButton'
 type Note = Tables<'notes'>
 
 enum Intent {
@@ -76,14 +78,21 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 export default function Note() {
   const [note, setNote] = useState<Note | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const navigate = useNavigate()
 
   const loaderData = useLoaderData<Note>()
 
   useEffect(() => {
     if (loaderData) {
-      setNote(loaderData)
-      setLoading(false)
+      if ('error' in loaderData) {
+        setError(true)
+        setLoading(false)
+      } else {
+        console.log('loaderData', loaderData)
+        setNote(loaderData)
+        setLoading(false)
+      }
     }
   }, [loaderData])
 
@@ -110,7 +119,7 @@ export default function Note() {
     )
   }
 
-  if (note) {
+  if (note && !error) {
     return (
       <>
         <NoteComponent
@@ -124,9 +133,10 @@ export default function Note() {
   }
   return (
     <>
-      <div className='flex flex-col items-center justify-start text-center'>
-        <p className='md:text-lg mx-auto mt-4'>No data available</p>
-      </div>
+      <Header>Note not found</Header>
+      <Link to='/'>
+        <ProminentButton>Record a new note</ProminentButton>
+      </Link>
     </>
   )
 }

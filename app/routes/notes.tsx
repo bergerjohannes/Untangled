@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs, json, ActionFunctionArgs, redirect } from '@remix-run/node'
-import { useLoaderData, useLocation } from '@remix-run/react'
+import { useLoaderData } from '@remix-run/react'
 import supabaseClient from '~/utils/supabase.server'
 import { useOutletContext, useFetcher } from '@remix-run/react'
 import { useEffect, useState, useRef } from 'react'
@@ -11,9 +11,9 @@ import Modal, { ModalRef } from '~/components/modal'
 
 import type { SupabaseOutletContext } from '~/root'
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
-import Button from '~/components/prominentButton'
 
 import { Tables } from 'types/supabase'
+import ProminentButton from '~/components/prominentButton'
 type Note = Tables<'notes'>
 
 enum Intent {
@@ -82,28 +82,14 @@ export default function Notes() {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const modalRef = useRef<ModalRef>(null)
-  const location = useLocation()
   const fetcher = useFetcher()
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null)
   const [noteTitleToDelete, setNoteTitleToDelete] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {
     setLocalNotes(notes)
   }, [notes])
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const show = window.scrollY > 72
-      if (show !== isScrolled) setIsScrolled(show)
-    }
-
-    document.addEventListener('scroll', handleScroll)
-    return () => {
-      document.removeEventListener('scroll', handleScroll)
-    }
-  }, [isScrolled])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -156,7 +142,7 @@ export default function Notes() {
         <EmptyState />
         <p className='my-12 text-whitish'>Nothing here yet!</p>
         <Link to='/'>
-          <Button>Record your first note</Button>
+          <ProminentButton>Record your first note</ProminentButton>
         </Link>
       </>
     )
@@ -164,7 +150,6 @@ export default function Notes() {
 
   return (
     <>
-      {isScrolled && <IndicatorTop />}
       <Header>Notes</Header>
       {localNotes
         .sort((a, b) => parseInt(b.timestamp) - parseInt(a.timestamp))
@@ -191,11 +176,5 @@ export default function Notes() {
         </p>
       </Modal>
     </>
-  )
-}
-
-const IndicatorTop = () => {
-  return (
-    <div className='fixed top-16 left-50% transform -translate-x-50% w-full max-w-2xl m-auto h-2 bg-blackish shadow-black shadow-lg'></div>
   )
 }
