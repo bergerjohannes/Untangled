@@ -7,6 +7,8 @@ import Illustration from '~/components/illustration'
 import Header from '../components/header'
 import RecordingBubble, { RecordingState } from '~/components/recordingBubble'
 import supabaseClient from '~/utils/supabase.server'
+import { hasActiveSubscription, ensureStripeCustomer } from '~/utils/stripe.server'
+import { generateUUID } from '~/utils/helpers'
 
 import { Session, User } from '@supabase/gotrue-js/src/lib/types'
 import type { SupabaseOutletContext } from '~/root'
@@ -19,17 +21,70 @@ export const meta: MetaFunction = () => {
   ]
 }
 
+const CLIENT_IDENTIFIER_KEY = 'identifierForClient'
+const ERROR_MESSAGE_FREE_TIER_USED =
+  'Not allowed - Please upgrade to a paid plan to continue using the service.'
+
 enum Intent {
   Transcribe = 'transcribe',
   Rephrase = 'rephrase',
 }
 
+enum UserStatus {
+  FreeUser = 'freeUser',
+  Subscriber = 'subscriber',
+}
+
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData()
   const intent = formData.get('intent') as Intent
-  const userId = formData.get('userId') as string | null
+  const clientIdentifier = formData.get('CLIENT_IDENTIFIER_KEY') as string
   const response = new Response()
   const supabase = supabaseClient({ request, response })
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  const userId = session?.user?.id ?? null
+  let isActiveSubscriber = false
+  if (userId) {
+    const stripeCustomerId = await ensureStripeCustomer(userId, session?.user?.email)
+    if (!stripeCustomerId) {
+      return json({ isActiveSubscriber: false }, { status: 200, headers: response.headers })
+    }
+    isActiveSubscriber = await hasActiveSubscription(stripeCustomerId)
+  }
+
+  let goodToGo = isActiveSubscriber === true
+  let userStatus: UserStatus
+  if (goodToGo) {
+    userStatus = UserStatus.Subscriber
+  } else {
+    // For free users, we allow one transcription and rephrasing per client
+    // Hence, we check if the client has already used the free trial
+    userStatus = UserStatus.FreeUser
+    const { data: trialNotesData, error: trialNotesError } = await supabase
+      .from('trial_notes')
+      .select('*')
+      .eq('owner', clientIdentifier)
+
+    if (trialNotesError) {
+      console.error(trialNotesError)
+      return json({ error: trialNotesError.message }, { status: 500 })
+    }
+
+    if (trialNotesData.length === 0) {
+      goodToGo = true
+    }
+  }
+
+  if (!goodToGo) {
+    return json(
+      { message: ERROR_MESSAGE_FREE_TIER_USED },
+      { status: 405, headers: response.headers }
+    )
+  }
 
   switch (intent) {
     case Intent.Transcribe: {
@@ -55,12 +110,14 @@ export const action: ActionFunction = async ({ request }) => {
                 return new Response('Error creating the transcript', { status: 400 })
               }
 
+              const database =
+                userStatus === UserStatus.Subscriber ? 'transcripts' : 'trial_transcripts'
               const { data: newTranscript, error } = await supabase
-                .from('transcripts')
+                .from(database)
                 .insert({
                   content: transcript.text,
                   timestamp: timestamp,
-                  owner: userId,
+                  owner: userStatus === UserStatus.Subscriber ? userId : clientIdentifier,
                 })
                 .select('*')
 
@@ -118,15 +175,15 @@ export const action: ActionFunction = async ({ request }) => {
           parsedData.timestamp = timestamp
           parsedData.transcript = transcript
           parsedData.owner = userId
-
+          const databaseNotes = userStatus === UserStatus.Subscriber ? 'notes' : 'trial_notes'
           const { data: newRephrase, error } = await supabase
-            .from('notes')
+            .from(databaseNotes)
             .insert({
               title: parsedData.title,
               text: parsedData.text,
               transcript: transcriptId,
               timestamp: timestamp,
-              owner: userId!, // Should be safe here since we only allow this intent if the user is logged in
+              owner: userStatus === UserStatus.Subscriber ? userId : clientIdentifier,
             })
             .select('*')
             .single()
@@ -166,6 +223,7 @@ interface FetcherData {
   transcript: string
   timestamp: string
   transcriptId: string
+  message?: string
 }
 
 export default function Index() {
@@ -233,6 +291,13 @@ export default function Index() {
           timestamp: (fetcher.data as FetcherData).timestamp,
         },
       })
+    } else if (
+      state === State.LoadingTranscribing &&
+      fetcher.data &&
+      (fetcher.data as FetcherData).message &&
+      (fetcher.data as FetcherData).message === ERROR_MESSAGE_FREE_TIER_USED
+    ) {
+      navigate('/upgrade')
     }
   }, [fetcher, state])
 
@@ -242,6 +307,20 @@ export default function Index() {
     }
   }, [state])
 
+  const getIdentifierForClient = () => {
+    // We are generating or loading the identifier for the client to allow one free transcription per client
+    let identifierForClient = generateUUID()
+    if (typeof window !== 'undefined') {
+      const localStorageItem = window.localStorage.getItem(CLIENT_IDENTIFIER_KEY)
+      if (localStorageItem) {
+        identifierForClient = localStorageItem
+      } else {
+        window.localStorage.setItem(CLIENT_IDENTIFIER_KEY, identifierForClient)
+      }
+    }
+    return identifierForClient
+  }
+
   const callRephraseAPI = async () => {
     if (
       state === State.LoadingRephrasing &&
@@ -249,17 +328,13 @@ export default function Index() {
       (fetcher.data as FetcherData).transcript
     ) {
       try {
-        const userId = user?.id
-        if (!userId) {
-          console.error('User ID is undefined')
-          return
-        }
+        const identifierForClient = getIdentifierForClient()
 
         const data = {
+          CLIENT_IDENTIFIER_KEY: identifierForClient,
           transcript: (fetcher.data as FetcherData).transcript,
           timestamp: (fetcher.data as FetcherData).timestamp,
           transcriptId: (fetcher.data as FetcherData).transcriptId,
-          userId: user?.id,
           intent: Intent.Rephrase,
         }
 
@@ -289,21 +364,18 @@ export default function Index() {
       reader.onloadend = () => {
         const base64data = reader.result
 
-        const formData = new FormData()
-        if (typeof base64data === 'string') {
-          formData.append('audio', base64data)
-        } else {
+        if (typeof base64data !== 'string') {
           console.error('Failed to convert blob to base64')
           return
         }
         try {
-          const userId = user?.id
-          if (!userId) {
-            console.error('User ID is undefined')
-            return
-          }
+          const identifierForClient = getIdentifierForClient()
 
-          const data = { audio: base64data, userId: userId, intent: Intent.Transcribe }
+          const data = {
+            CLIENT_IDENTIFIER_KEY: identifierForClient,
+            audio: base64data,
+            intent: Intent.Transcribe,
+          }
           fetcher.submit(data, { method: 'post', action: '/?index' })
         } catch (error) {
           console.error('Error submitting the recorded audio: ', error)
